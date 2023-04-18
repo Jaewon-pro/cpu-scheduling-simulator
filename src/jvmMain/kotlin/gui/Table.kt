@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import utils.ProgramData
 import utils.Task
 import utils.taskHeader
 import kotlin.math.roundToInt
@@ -44,23 +45,23 @@ private fun RowScope.TableCell(
 }
 
 @Composable
-fun showTable(tasks: List<Task>?) {
-    if (tasks == null) {
-
-    } else if (tasks[0].executionTime == tasks[0].remainedTime){
+fun showTable(tasks: List<Task>) {
+    if (tasks[0].executionTime == tasks[0].remainedTime)
         table(tasks)
-    } else {
-        //Column { } 평균 결과창 출력, 테이블 위에하기.
-        resultTable(tasks)
-    }
-
-//    Row (
-//        Modifier.height(400.dp)
-//    ) {
-//        table(tasks)
-//        resultTable(tasks)
-//    }
 }
+
+@Composable
+fun showResult(data: ProgramData?) {
+    if (data == null) return
+    Column {
+        val averageWaitedTime = data.tasks.sumOf { it.waitedTime } / data.tasks.size.toFloat()
+        val averageTurnaroundTime = data.tasks.sumOf { it.turnaroundTime() } / data.tasks.size.toFloat()
+        averageResultTable(data.totalRunTime, averageWaitedTime, averageTurnaroundTime, data.contextSwitched)
+        resultTable(data.tasks)
+    }
+}
+
+
 
 @Composable
 private fun table(tasks: List<Task>) {
@@ -71,7 +72,7 @@ private fun table(tasks: List<Task>) {
 
     // The LazyColumn will be our table. Notice the use of the weights below
     LazyColumn(modifier = Modifier
-        .fillMaxWidth().height(400.dp).padding(16.dp).simpleVerticalScrollbar(scrollState)
+        .fillMaxWidth().height(500.dp).padding(16.dp).simpleVerticalScrollbar(scrollState)
         .draggable(
             orientation = Orientation.Vertical,
             state = rememberDraggableState { delta ->
@@ -100,6 +101,43 @@ private fun table(tasks: List<Task>) {
 }
 
 @Composable
+private fun averageResultTable(totalTime: Int, avgWaited: Float, avgTurnaround: Float, contextSwitched: Int) {
+    val weight: Float = (2 / 100.0f) * 100 / 100.0f.roundToInt() // 요소를 100으로 나눈 퍼센트값
+    val scrollState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+    // The LazyColumn will be our table. Notice the use of the weights below
+    LazyColumn(modifier = Modifier
+        .fillMaxWidth().height(100.dp).padding(16.dp).simpleVerticalScrollbar(scrollState)
+        .draggable(
+            orientation = Orientation.Vertical,
+            state = rememberDraggableState { delta ->
+                coroutineScope.launch {
+                    scrollState.scrollBy(-delta)
+                }
+            },
+        )) {
+        item {
+            Row(Modifier.background(Color(230,230,250))) {
+                TableCell(text = "Total Runtime", weight = weight)
+                TableCell(text = "Context Switch", weight = weight)
+                TableCell(text = "Average Turnaround", weight = weight)
+                TableCell(text = "Average Turnaround", weight = weight)
+            }
+        }
+        // Here are all the lines of your table.
+        items(1) {
+            Row(Modifier.fillMaxWidth()) {
+                TableCell(text = totalTime.toString(), weight = weight)
+                TableCell(text = contextSwitched.toString(), weight = weight)
+                TableCell(text = avgWaited.toString(), weight = weight)
+                TableCell(text = avgTurnaround.toString(), weight = weight)
+            }
+        }
+    }
+}
+
+@Composable
 private fun resultTable(tasks: List<Task>) {
     val weight: Float = ((taskHeader.size + 3) / 100.0f) * 100 / 100.0f.roundToInt() // Column 요소 개수를 100으로 나눈 퍼센트 값
     fun weight(len: Int): Float = (30 / 100.0f) * 100 / 100.0f.roundToInt()
@@ -108,7 +146,7 @@ private fun resultTable(tasks: List<Task>) {
 
     LazyColumn(
         state = scrollState,
-        modifier = Modifier.fillMaxWidth().height(400.dp).padding(16.dp).simpleVerticalScrollbar(scrollState)
+        modifier = Modifier.fillMaxWidth().height(300.dp).padding(16.dp).simpleVerticalScrollbar(scrollState)
             .draggable(
                 orientation = Orientation.Vertical,
                 state = rememberDraggableState { delta ->

@@ -16,28 +16,24 @@ fun parse(string: String, index: Int): Task {
 }
 
 internal fun runTask(tasks: List<Task>): ProgramData {
-    val info: MutableList<Info> = mutableListOf()
+    val info: MutableList<Info> = mutableListOf(Info(-1, tasks[0].arrivalTime, 0))
     var contextCount = 0
     var currentRunTime = tasks[0].executionTime
     tasks[0].waitedTime = 0
 
+    info += Info(tasks[0].pid, currentRunTime, tasks[0].executionTime)
     for (i in 1 until tasks.size) {
         val timeDiff = currentRunTime - tasks[i].arrivalTime
-        info.add(Info(tasks[i].pid, currentRunTime, timeDiff))
-
         tasks[i].waitedTime = if (timeDiff > 0) timeDiff else 0
+
         currentRunTime += tasks[i].executionTime
+        info.add(Info(tasks[i].pid, currentRunTime, tasks[i].executionTime))
         ++contextCount
     }
     val sorted = tasks.sortedBy { it.idx } // CSV 의 파일 순서대로 정렬
     return ProgramData(sorted, info, currentRunTime, contextCount)
 }
 
-
-//fun execute(fileInputStream: FileInputStream): Iterable<Task> {
-//    return parseFromCSV(fileInputStream, ::parse).sortedBy{ it.arrivalTime } // FCFS 라서 도착한 순서대로 정렬
-//        .let(::runTask).let(::printResult)
-//}
 
 fun execute(tasks: List<Task>): ProgramData {
 

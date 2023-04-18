@@ -1,0 +1,6 @@
+PID,Arrival Time,Burst Time,Priority
+1,0,5,1
+2,5,6,2
+3,10,5,1
+4,12,6,3
+5,13,3,1

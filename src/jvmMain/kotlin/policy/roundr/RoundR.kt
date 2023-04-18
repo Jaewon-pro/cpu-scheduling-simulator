@@ -2,7 +2,7 @@ package policy.roundr
 
 import utils.*
 
-//    PID,Arrival Time,Burst Time
+//PID,Arrival Time,Burst Time
 //1,0,53
 //2,1,17
 //3,2,68
@@ -20,7 +20,7 @@ fun parse(string: String): Task {
 }
 
 internal fun runTask(tasks : List<Task>, quantum: Int): ProgramData { // Round Robin
-    val info: MutableList<Info> = mutableListOf()
+    val info: MutableList<Info> = mutableListOf(Info(-1, tasks[0].arrivalTime, 0)) // 처음에 0 표시
 
     var contextSwitched = 0 // 문맥교환 횟수
     var currentRunTime = tasks[0].arrivalTime
@@ -48,14 +48,9 @@ internal fun runTask(tasks : List<Task>, quantum: Int): ProgramData { // Round R
             performed.waitedTime = currentRunTime - performed.arrivalTime - performed.executionTime
             print(performed.pid)
             println(": finished, at $currentRunTime")
-            performed.completedTime = currentRunTime
         } else {
             readyPool.add(performed)
         }
-//        while (nextIdx < tasks.size && currentRunTime == tasks[nextIdx].arrivalTime) {
-//            readyPool.add(tasks[nextIdx])
-//            ++nextIdx
-//        }
         ++contextSwitched
     }
     contextSwitched -= 2 // 처음이랑 마지막 교체 횟수 빼줌

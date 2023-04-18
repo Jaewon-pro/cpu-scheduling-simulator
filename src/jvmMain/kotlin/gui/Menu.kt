@@ -11,9 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import utils.Lazarus
 import utils.ProgramData
 import utils.Task
+import utils.lazarus
 import utils.parseFromCSV
 import java.awt.FileDialog
 import java.io.File
@@ -52,12 +52,12 @@ fun menu(window: ComposeWindow, tasks: List<Task>?, onLoader: (List<Task>) -> Un
             TextField(
                 value = quantum,
                 onValueChange = {
-                    newValue ->
+                        newValue ->
                     quantum = newValue.replace(Regex("\\D+"), "")
                     val maxLen = 5
                     if (quantum.length > maxLen) quantum = quantum.slice(IntRange(0, maxLen))
                 },
-                Modifier.size(100.dp)
+                modifier = Modifier.size(100.dp)
             )
         }
         runButton((tasks != null),
@@ -121,8 +121,8 @@ fun policySelector(
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier
-            .wrapContentSize()
-            .clickable(onClick = { expanded = true })
+        .wrapContentSize()
+        .clickable(onClick = { expanded = true })
     ) {
         Text(modifier = Modifier.padding(16.dp), // 길이
             text = selectedItem,
@@ -151,7 +151,7 @@ private fun runButton(enable: Boolean, selectedPolicy: Policy, tasks: List<Task>
             onClick = {
                 if (tasks != null) {
                     if (tasks[0].executionTime != tasks[0].remainedTime) { // 이미 한번 실행해서 남은 시간이 0인 경우
-                        Lazarus(tasks)
+                        lazarus(tasks)
                     }
                     val result: ProgramData = when (selectedPolicy) {
                         Policy.FCFS -> policy.fcfs.execute(tasks)
