@@ -8,7 +8,7 @@ var taskHeader: List<String> = listOf()
 data class ProgramData (
     val tasks: List<Task>,
     val info: List<Info>,
-    val contextSwitched: Int // 문맥교환 횟수
+    //val contextSwitched: Int // 문맥교환 횟수
 )
 
 data class Info (
@@ -32,11 +32,6 @@ data class Task (
     fun completedTime() = arrivalTime + executionTime + waitedTime
     fun turnaroundTime() = executionTime + waitedTime
 
-    // FCFS
-    constructor(pid: Int, arrivalTime: Int, executionTime: Int, idx: Int) : this(pid, arrivalTime, executionTime, -1, idx)
-    // SJF
-    constructor(pid: Int, arrivalTime: Int, executionTime: Int) : this(pid, arrivalTime, executionTime, -1, -1)
-
     override fun toString(): String {
         var str: String = "Task PID: $pid, Arrival time: $arrivalTime, Burst time: $executionTime"
         if (priority >= 0) str += ", Priority: $priority"
@@ -45,25 +40,27 @@ data class Task (
     }
 }
 
-fun <T> parseFromCSV(fileInputStream: FileInputStream, parse: (String, Int) -> T): List<T> {
+private fun parseStringToTask(string: String, index: Int): Task {
+    return if (taskHeader.contains("Priority")) {
+        val (pid, arrival, execution, priority) = string.split(',', ignoreCase = false).map { it.toInt() }
+        Task(pid, arrival, execution, priority, index)
+    } else {
+        val (pid, arrival, execution) = string.split(',', ignoreCase = false).map { it.toInt() }
+        Task(pid, arrival, execution, -1, index)
+    }
+}
+
+fun parseFromCSV(fileInputStream: FileInputStream): List<Task> {
 
     val reader = fileInputStream.bufferedReader()
     taskHeader = reader.readLine().split(',', ignoreCase = false)
     var index = 0
     return reader.lineSequence()
         .filter { it.isNotBlank() }
-        .map { parse(it, ++index) }.toList()
+        .map { parseStringToTask(it, ++index) }.toList()
 }
 
-fun <T> parseFromCSV(fileInputStream: FileInputStream, parse: (String) -> T): List<T> {
-    val reader = fileInputStream.bufferedReader()
-    taskHeader = reader.readLine().split(',', ignoreCase = false)
-    return reader.lineSequence()
-        .filter { it.isNotBlank() }
-        .map { parse(it) }.toList()
-}
-
-fun printResult (data: ProgramData): ProgramData {
+fun printResult(data: ProgramData): ProgramData {
     data.tasks.forEach{ println(it) }
     return data
 }
@@ -74,7 +71,6 @@ fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int): ProgramD
     val readyPool = PriorityQueue(compare)
     var currentRunTask: Task? = null
     var idx = 0
-    var contextSwitched = 0
     val info: MutableList<Info> = mutableListOf(Info(-1, tasks[0].arrivalTime, 0))
 
     while (idx < tasks.size) {
@@ -92,7 +88,6 @@ fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int): ProgramD
                 currentRunTask.insertedTime = currentRunTime
                 readyPool.add(currentRunTask)
                 currentRunTask = tasks[idx]
-                ++contextSwitched
             }
             ++idx
         }
@@ -111,14 +106,12 @@ fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int): ProgramD
                 newRun.waitedTime += currentRunTime - newRun.insertedTime
                 currentRunTask = newRun
             }
-            ++contextSwitched
         }
     }
     if (currentRunTask != null) {
         currentRunTime += currentRunTask.remainedTime
         info += Info(currentRunTask.pid, currentRunTime, currentRunTask.remainedTime)
         currentRunTask.remainedTime = 0
-        ++contextSwitched
     }
     while (readyPool.isNotEmpty()) {
         val newRun = readyPool.remove()
@@ -129,10 +122,8 @@ fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int): ProgramD
         newRun.remainedTime = 0
         print(newRun.pid)
         println(": finished at $currentRunTime")
-
-        ++contextSwitched
     }
-    return ProgramData(tasks, info, contextSwitched)
+    return ProgramData(tasks, info)
 }
 
 fun lazarus(tasks : List<Task>) { // reset tasks

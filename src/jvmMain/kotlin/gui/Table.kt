@@ -1,7 +1,5 @@
 package gui
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
@@ -10,22 +8,16 @@ import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import utils.ProgramData
+import utils.Info
 import utils.Task
 import utils.taskHeader
 import kotlin.math.roundToInt
@@ -37,7 +29,7 @@ private fun RowScope.TableCell(
 ) {
     Text(
         text = text,
-        Modifier
+        modifier = Modifier
             .border(1.dp, Color.Black)
             .weight(weight)
             .padding(8.dp)
@@ -51,18 +43,16 @@ fun showTable(tasks: List<Task>) {
 }
 
 @Composable
-fun showResult(data: ProgramData?) {
-    if (data == null) return
+fun showResult(tasks: List<Task>, info: List<Info>) {
     Column {
-        val averageWaitedTime = data.tasks.sumOf { it.waitedTime } / data.tasks.size.toFloat()
-        val averageTurnaroundTime = data.tasks.sumOf { it.turnaroundTime() } / data.tasks.size.toFloat()
-        val totalTime = data.info.last().time
-        averageResultTable(totalTime, averageWaitedTime, averageTurnaroundTime, data.contextSwitched)
-        resultTable(data.tasks)
+        val averageWaitedTime = tasks.sumOf { it.waitedTime } / tasks.size.toFloat()
+        val averageTurnaroundTime = tasks.sumOf { it.turnaroundTime() } / tasks.size.toFloat()
+        val totalTime = info.last().time
+        val contextSwitched = info.size - 2
+        averageResultTable(totalTime, averageWaitedTime, averageTurnaroundTime, contextSwitched)
+        resultTable(tasks)
     }
 }
-
-
 
 @Composable
 private fun table(tasks: List<Task>) {
@@ -73,7 +63,7 @@ private fun table(tasks: List<Task>) {
 
     // The LazyColumn will be our table. Notice the use of the weights below
     LazyColumn(modifier = Modifier
-        .fillMaxWidth().height(500.dp).padding(16.dp).simpleVerticalScrollbar(scrollState)
+        .fillMaxWidth().height(500.dp).padding(16.dp)
         .draggable(
             orientation = Orientation.Vertical,
             state = rememberDraggableState { delta ->
@@ -109,7 +99,7 @@ private fun averageResultTable(totalTime: Int, avgWaited: Float, avgTurnaround: 
 
     // The LazyColumn will be our table. Notice the use of the weights below
     LazyColumn(modifier = Modifier
-        .fillMaxWidth().height(100.dp).padding(16.dp).simpleVerticalScrollbar(scrollState)
+        .fillMaxWidth().height(100.dp).padding(16.dp)
         .draggable(
             orientation = Orientation.Vertical,
             state = rememberDraggableState { delta ->
@@ -146,7 +136,7 @@ private fun resultTable(tasks: List<Task>) {
 
     LazyColumn(
         state = scrollState,
-        modifier = Modifier.fillMaxWidth().height(300.dp).padding(16.dp).simpleVerticalScrollbar(scrollState)
+        modifier = Modifier.fillMaxWidth().height(300.dp).padding(16.dp)
             .draggable(
                 orientation = Orientation.Vertical,
                 state = rememberDraggableState { delta ->
@@ -175,42 +165,6 @@ private fun resultTable(tasks: List<Task>) {
                 TableCell(text = it.completedTime().toString(), weight = weight)
                 TableCell(text = it.turnaroundTime().toString(), weight = weight)
             }
-        }
-    }
-}
-
-
-@Composable
-fun Modifier.simpleVerticalScrollbar(
-    state: LazyListState,
-    width: Dp = 8.dp
-): Modifier {
-    val targetAlpha = if (state.isScrollInProgress) 1f else 0f
-    val duration = if (state.isScrollInProgress) 150 else 500
-
-    val alpha by animateFloatAsState(
-        targetValue = targetAlpha,
-        animationSpec = tween(durationMillis = duration)
-    )
-
-    return drawWithContent {
-        drawContent()
-
-        val firstVisibleElementIndex = state.layoutInfo.visibleItemsInfo.firstOrNull()?.index
-        val needDrawScrollbar = state.isScrollInProgress || alpha > 0.0f
-
-        // Draw scrollbar if scrolling or if the animation is still running and lazy column has content
-        if (needDrawScrollbar && firstVisibleElementIndex != null) {
-            val elementHeight = this.size.height / state.layoutInfo.totalItemsCount
-            val scrollbarOffsetY = firstVisibleElementIndex * elementHeight
-            val scrollbarHeight = state.layoutInfo.visibleItemsInfo.size * elementHeight
-
-            drawRect(
-                color = Color.Red,
-                topLeft = Offset(this.size.width - width.toPx(), scrollbarOffsetY),
-                size = Size(width.toPx(), scrollbarHeight),
-                alpha = alpha
-            )
         }
     }
 }

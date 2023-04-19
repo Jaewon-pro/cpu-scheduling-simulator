@@ -1,4 +1,4 @@
-package policy.fcfs
+package policy
 
 import utils.Info
 import utils.ProgramData
@@ -10,14 +10,8 @@ import utils.printResult
 //    2,0,3
 //    3,1,3
 
-fun parse(string: String, index: Int): Task {
-    val (pid, arrival, execution) = string.split(',', ignoreCase = false).map { it.toInt() }
-    return Task(pid, arrival, execution, index)
-}
-
-internal fun runTask(tasks: List<Task>): ProgramData {
+private fun runTaskFCFS(tasks: List<Task>): ProgramData {
     val info: MutableList<Info> = mutableListOf(Info(-1, tasks[0].arrivalTime, 0))
-    var contextCount = 0
     var currentRunTime = tasks[0].executionTime
     tasks[0].responseTime = currentRunTime
     tasks[0].waitedTime = 0
@@ -30,14 +24,13 @@ internal fun runTask(tasks: List<Task>): ProgramData {
 
         currentRunTime += tasks[i].executionTime
         info.add(Info(tasks[i].pid, currentRunTime, tasks[i].executionTime))
-        ++contextCount
     }
     val sorted = tasks.sortedBy { it.idx } // CSV 의 파일 순서대로 정렬
-    return ProgramData(sorted, info, contextCount)
+    return ProgramData(sorted, info)
 }
 
 
-fun execute(tasks: List<Task>): ProgramData {
+fun executeFCFS(tasks: List<Task>): ProgramData {
     val sortedTasks: List<Task> = tasks.sortedBy{ it.arrivalTime } // FCFS 라서 도착한 순서대로 정렬
-    return runTask(sortedTasks).let(::printResult)
+    return runTaskFCFS(sortedTasks).let(::printResult)
 }

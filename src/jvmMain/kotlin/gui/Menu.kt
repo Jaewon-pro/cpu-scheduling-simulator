@@ -41,8 +41,7 @@ fun menu(window: ComposeWindow, tasks: List<Task>?, onLoader: (List<Task>) -> Un
         var quantum by rememberSaveable { mutableStateOf("4") }
 
         openFileButton(
-            window,
-            selectedPolicy,
+            window = window,
             onValueSaved = { savedValue -> onLoader(savedValue) })
         policySelector(
             items = Policy.values().map { it.label },
@@ -67,9 +66,8 @@ fun menu(window: ComposeWindow, tasks: List<Task>?, onLoader: (List<Task>) -> Un
     }
 }
 
-
 @Composable
-private fun openFileButton(window: ComposeWindow, selectedPolicy: Policy, onValueSaved: (List<Task>) -> Unit) {
+private fun openFileButton(window: ComposeWindow, onValueSaved: (List<Task>) -> Unit) {
     Box {
         Button(onClick = {
             val openedFiles = openFileDialog(window, "Select a CSV file to run", listOf(".csv"), allowMultiSelection = false)
@@ -77,7 +75,7 @@ private fun openFileButton(window: ComposeWindow, selectedPolicy: Policy, onValu
                 println("파일을 선택해주세요")
             } else {
 
-                val openedTasks = parseFile(FileInputStream(openedFiles.first()), selectedPolicy)
+                val openedTasks = parseFile(FileInputStream(openedFiles.first()))
                 onValueSaved(openedTasks)
                 print("파일 선택됨: ")
                 println(openedFiles.first().absoluteFile)
@@ -101,13 +99,8 @@ private fun openFileDialog(window: ComposeWindow, title: String, allowedExtensio
     }.files.toSet()
 }
 
-private fun parseFile(fileInputStream: FileInputStream, selectedPolicy: Policy): List<Task> {
-    val tasks = when (selectedPolicy) {
-        Policy.FCFS -> parseFromCSV(fileInputStream) { string, idx -> policy.fcfs.parse(string, idx) }
-        Policy.SRTF -> parseFromCSV(fileInputStream) { it: String -> policy.sjf.parse(it) }
-        Policy.PRIORITY -> parseFromCSV(fileInputStream) { it: String -> policy.priority.parse(it) }
-        Policy.ROUND_ROBIN -> parseFromCSV(fileInputStream) { it: String -> policy.roundr.parse(it) }
-    }
+private fun parseFile(fileInputStream: FileInputStream): List<Task> {
+    val tasks = parseFromCSV(fileInputStream)
     fileInputStream.close()
     return tasks
 }
@@ -124,9 +117,7 @@ fun policySelector(
         .wrapContentSize()
         .clickable(onClick = { expanded = true })
     ) {
-        Text(modifier = Modifier.padding(16.dp), // 길이
-            text = selectedItem,
-        )
+        Text(modifier = Modifier.padding(16.dp), text = selectedItem)
 
         DropdownMenu(expanded = expanded,
             onDismissRequest = { expanded = false }
@@ -154,10 +145,10 @@ private fun runButton(enable: Boolean, selectedPolicy: Policy, tasks: List<Task>
                         lazarus(tasks)
                     }
                     val result: ProgramData = when (selectedPolicy) {
-                        Policy.FCFS -> policy.fcfs.execute(tasks)
-                        Policy.SRTF -> policy.sjf.execute(tasks)
-                        Policy.PRIORITY -> policy.priority.execute(tasks)
-                        Policy.ROUND_ROBIN -> policy.roundr.execute(tasks, quantum)
+                        Policy.FCFS -> policy.executeFCFS(tasks)
+                        Policy.SRTF -> policy.executeSRTF(tasks)
+                        Policy.PRIORITY -> policy.executePriority(tasks)
+                        Policy.ROUND_ROBIN -> policy.executeRoundRobin(tasks, quantum)
                     }
                     onValueSaved(result) // Running Completed
                 }
