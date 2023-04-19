@@ -56,7 +56,8 @@ fun showResult(data: ProgramData?) {
     Column {
         val averageWaitedTime = data.tasks.sumOf { it.waitedTime } / data.tasks.size.toFloat()
         val averageTurnaroundTime = data.tasks.sumOf { it.turnaroundTime() } / data.tasks.size.toFloat()
-        averageResultTable(data.totalRunTime, averageWaitedTime, averageTurnaroundTime, data.contextSwitched)
+        val totalTime = data.info.last().time
+        averageResultTable(totalTime, averageWaitedTime, averageTurnaroundTime, data.contextSwitched)
         resultTable(data.tasks)
     }
 }
@@ -140,7 +141,6 @@ private fun averageResultTable(totalTime: Int, avgWaited: Float, avgTurnaround: 
 @Composable
 private fun resultTable(tasks: List<Task>) {
     val weight: Float = ((taskHeader.size + 3) / 100.0f) * 100 / 100.0f.roundToInt() // Column 요소 개수를 100으로 나눈 퍼센트 값
-    fun weight(len: Int): Float = (30 / 100.0f) * 100 / 100.0f.roundToInt()
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 

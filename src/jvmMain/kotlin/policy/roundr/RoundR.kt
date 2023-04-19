@@ -58,7 +58,7 @@ internal fun runTask(tasks : List<Task>, quantum: Int): ProgramData { // Round R
     println("Total Executed time : $currentRunTime")
     println("Context Switched : $contextSwitched")
 
-    return ProgramData(tasks, info, currentRunTime, contextSwitched)
+    return ProgramData(tasks, info, contextSwitched)
 }
 
 fun execute(tasks: List<Task>, quantum: Int): ProgramData {

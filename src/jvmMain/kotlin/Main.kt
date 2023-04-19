@@ -24,7 +24,6 @@ fun main() = application {
             menu(window,
                 tasks,
                 onLoader = { tasks = it; showResult1 = false },
-                //onPerformed = { data = it; tasks = null })
                 onPerformed = { data = it; showResult1 = true })
             if (!showResult1 && tasks != null) showTable(tasks!!)
             if (showResult1 && data != null) {
@@ -34,9 +33,3 @@ fun main() = application {
         }
     }
 }
-
-//if (tasks != null) showTable(tasks!!)
-//if (tasks == null && data != null) {
-//    showResult(data)
-//    showChart(data!!.info)
-//}

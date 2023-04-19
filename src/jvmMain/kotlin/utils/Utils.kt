@@ -8,7 +8,6 @@ var taskHeader: List<String> = listOf()
 data class ProgramData (
     val tasks: List<Task>,
     val info: List<Info>,
-    val totalRunTime: Int, // 총 실행 시간
     val contextSwitched: Int // 문맥교환 횟수
 )
 
@@ -28,6 +27,7 @@ data class Task (
     var remainedTime: Int = executionTime
     var waitedTime: Int = 0 // 이건 1틱마다가 아닌 task 사이클 마다 계산
     var insertedTime: Int = -1
+    var responseTime: Int = -1 // 처음으로 응답한 시간
 
     fun completedTime() = arrivalTime + executionTime + waitedTime
     fun turnaroundTime() = executionTime + waitedTime
@@ -132,7 +132,7 @@ fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int): ProgramD
 
         ++contextSwitched
     }
-    return ProgramData(tasks, info, currentRunTime, contextSwitched)
+    return ProgramData(tasks, info, contextSwitched)
 }
 
 fun lazarus(tasks : List<Task>) { // reset tasks
