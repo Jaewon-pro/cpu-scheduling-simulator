@@ -17,6 +17,7 @@ import utils.parseFromCSV
 import java.awt.FileDialog
 import java.io.File
 import java.io.FileInputStream
+import kotlin.system.measureNanoTime
 
 private enum class Policy(val label: String) {
     FCFS("FCFS"), SRTF("Shortest-Remaining-First"), PRIORITY("Priority"), ROUND_ROBIN("Round Robin")
@@ -142,13 +143,16 @@ private fun runButton(enable: Boolean, selectedPolicy: Policy, tasks: List<Task>
                     if (tasks[0].isFinished()) { // 이미 한번 실행해서 남은 시간이 0인 경우
                         tasks.forEach { it.reset() }
                     }
-                    val result: ProgramData = when (selectedPolicy) {
-                        Policy.FCFS -> policy.executeFCFS(tasks)
-                        Policy.SRTF -> policy.executeSRTF(tasks)
-                        Policy.PRIORITY -> policy.executePriority(tasks)
-                        Policy.ROUND_ROBIN -> policy.executeRoundRobin(tasks, quantum)
-                    }
+                    val duration = measureNanoTime {
+                        val result: ProgramData = when (selectedPolicy) {
+                            Policy.FCFS -> policy.executeFCFS(tasks)
+                            Policy.SRTF -> policy.executeSRTF(tasks)
+                            Policy.PRIORITY -> policy.executePriority(tasks)
+                            Policy.ROUND_ROBIN -> policy.executeRoundRobin(tasks, quantum)
+                        }
                     onValueSaved(result) // Running Completed
+                    }
+                    println("[${selectedPolicy.label}]Duration: $duration nanoseconds")
                 }
             }) { Text("Run") }
     }

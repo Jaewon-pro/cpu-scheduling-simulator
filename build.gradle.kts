@@ -12,7 +12,6 @@ repositories {
     google()
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-
 }
 
 
@@ -25,7 +24,6 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
-//                implementation("com.darkrockstudios:mpfilepicker:1.0.0")
             }
         }
         val jvmTest by getting
@@ -36,9 +34,18 @@ compose.desktop {
     application {
         mainClass = "MainKt"
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "Compose1"
+            targetFormats(TargetFormat.Dmg, TargetFormat.Exe, TargetFormat.Deb)
+            packageName = "ComposeCPU"
             packageVersion = "1.0.0"
+            macOS {
+                iconFile.set(project.file("icon.icns"))
+            }
+            windows {
+                iconFile.set(project.file("icon.ico"))
+            }
+            linux {
+                iconFile.set(project.file("icon.png"))
+            }
         }
     }
 }

@@ -22,11 +22,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import utils.Info
+import utils.ChartInfo
 
 
 @Composable
-fun chart(width: Dp, label: String, time: Int) { // 차트 한칸
+fun oneChart(width: Dp, label: String, time: Int) { // 차트 한칸
     Column {
         Card(Modifier
             .border(width = 0.dp, color = Color.Blue)
@@ -40,8 +40,7 @@ fun chart(width: Dp, label: String, time: Int) { // 차트 한칸
 }
 
 @Composable
-fun showChart(info: List<Info>) {
-    println(info)
+fun showChartAll(info: List<ChartInfo>) {
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     LazyRow (
@@ -56,7 +55,7 @@ fun showChart(info: List<Info>) {
             )
     ) {
         items(info) {
-            chart((it.ranTime * 20).dp, it.pid.toString(), it.timestamp)
+            oneChart((it.ranTime * 20).dp, it.pid.toString(), it.timestamp)
         }
     }
 }

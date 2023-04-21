@@ -1,6 +1,6 @@
 package policy
 
-import utils.Info
+import utils.ChartInfo
 import utils.ProgramData
 import utils.Task
 import java.util.*
@@ -15,7 +15,7 @@ import java.util.*
 //}
 
 internal fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int): ProgramData { // 선점형, priority, srtf 공용
-    val info: MutableList<Info> = mutableListOf(Info(-1, tasks[0].arrivalTime, ranTime = 0))
+    val info: MutableList<ChartInfo> = mutableListOf(ChartInfo(-1, tasks[0].arrivalTime, ranTime = 0))
 
     var currentRunTime = tasks[0].arrivalTime
     val readyPool = PriorityQueue(compare)
@@ -27,20 +27,17 @@ internal fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int):
 
             if (currentRunTask === null) { currentRunTask = tasks[idx] }
             else if (compare(currentRunTask, tasks[idx]) <= 0) { // 기존 Task 의 우선순위가 더 크면, 변화 X, current 계속 실행
-                //tasks[idx].insertedTime = currentRunTime
                 readyPool.add(tasks[idx])
             } else { // 새로 비교할 Task 의 우선순위가 더 크면
                 val ranTime = currentRunTime - info.last().timestamp
-                if (ranTime != 0)  info += Info(currentRunTask.pid, currentRunTime, ranTime) // ranTime 이 0인 경우 방지
+                if (ranTime != 0)  info += ChartInfo(currentRunTask.pid, currentRunTime, ranTime) // ranTime 이 0인 경우 방지
 
-                //currentRunTask.insertedTime = currentRunTime
                 tasks[idx].responseTime = currentRunTime // 새로 들어온 Task 의 첫 응답 시간 설정
                 readyPool.add(currentRunTask)
                 currentRunTask = tasks[idx]
             }
             ++idx
         }
-        //println(currentRunTime)
         if (currentRunTask === null) { continue }
         if (currentRunTask.responseTime == -1) { currentRunTask.responseTime = currentRunTime }
 
@@ -48,14 +45,13 @@ internal fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int):
 
         --currentRunTask.remainedTime
         if (currentRunTask.isFinished()) {
-            println("${currentRunTask.pid}: finished ## at $currentRunTime")
+            //println("${currentRunTask.pid}: finished ## at $currentRunTime")
             currentRunTask.waitedTime = currentRunTime - currentRunTask.arrivalTime - currentRunTask.executionTime
-            info += Info(currentRunTask.pid, currentRunTime, currentRunTime - info.last().timestamp)
+            info += ChartInfo(currentRunTask.pid, currentRunTime, currentRunTime - info.last().timestamp)
 
             if (readyPool.isEmpty()) { currentRunTask = null }
             else {
                 val newRun = readyPool.remove()
-                //newRun.waitedTime += currentRunTime - newRun.insertedTime
                 currentRunTask = newRun
                 if (currentRunTask.responseTime == -1) { currentRunTask.responseTime = currentRunTime }
             }
@@ -63,19 +59,18 @@ internal fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int):
     }
     if (currentRunTask != null) {
         currentRunTime += currentRunTask.remainedTime
-        info += Info(currentRunTask.pid, currentRunTime, currentRunTime - currentRunTask.responseTime)
+        info += ChartInfo(currentRunTask.pid, currentRunTime, currentRunTime - currentRunTask.responseTime)
         currentRunTask.remainedTime = 0
     }
     while (readyPool.isNotEmpty()) {
         val newRun = readyPool.remove()
 
-        info += Info(newRun.pid, currentRunTime + newRun.remainedTime, newRun.remainedTime)
-        //newRun.waitedTime += currentRunTime - newRun.insertedTime
+        info += ChartInfo(newRun.pid, currentRunTime + newRun.remainedTime, newRun.remainedTime)
         if (newRun.responseTime == -1) { newRun.responseTime = currentRunTime }
         currentRunTime += newRun.remainedTime
         newRun.remainedTime = 0
         newRun.waitedTime = currentRunTime - newRun.arrivalTime - newRun.executionTime
-        println("${newRun.pid}: finished ! at $currentRunTime")
+        //println("${newRun.pid}: finished ! at $currentRunTime")
     }
     return ProgramData(tasks, info)
 }

@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import utils.Info
+import utils.ChartInfo
 import utils.Task
 import utils.taskHeader
 import kotlin.math.roundToInt
@@ -45,8 +45,8 @@ fun showTasksTable(tasks: List<Task>) {
     val coroutineScope = rememberCoroutineScope()
 
     // The LazyColumn will be our table. Notice the use of the weights below
-    LazyColumn(modifier = Modifier
-        .fillMaxWidth().height(500.dp).padding(16.dp)
+    LazyColumn(modifier = Modifier.fillMaxHeight(0.9f)
+        .fillMaxWidth().padding(16.dp)//.height(500.dp)
         .draggable(
             orientation = Orientation.Vertical,
             state = rememberDraggableState { delta ->
@@ -74,7 +74,7 @@ fun showTasksTable(tasks: List<Task>) {
 }
 
 @Composable
-fun showResult(tasks: List<Task>, info: List<Info>) { // 성능 지표 테이블
+fun showResult(tasks: List<Task>, info: List<ChartInfo>) { // 성능 지표 테이블
     Column {
         val avgWaitedTime = tasks.sumOf { it.waitedTime } / tasks.size.toFloat()
         val avgResponseTime = tasks.sumOf { it.responseTime } / tasks.size.toFloat()
@@ -95,15 +95,8 @@ private fun averageResultTable(throughput: Float, avgWaited: Float, avgResponse:
     val coroutineScope = rememberCoroutineScope()
 
     LazyColumn(modifier = Modifier
-        .fillMaxWidth().height(100.dp).padding(16.dp)
-        .draggable(
-            orientation = Orientation.Vertical,
-            state = rememberDraggableState { delta ->
-                coroutineScope.launch {
-                    scrollState.scrollBy(-delta)
-                }
-            },
-        )) {
+        .fillMaxWidth().padding(16.dp).height(80.dp)
+    ) {
         item {
             Row(Modifier.background(Color(230,230,250))) {
                 TableCell(text = "Throughput", weight = weight)
@@ -133,7 +126,9 @@ private fun resultTable(tasks: List<Task>) {
 
     LazyColumn(
         state = scrollState,
-        modifier = Modifier.fillMaxWidth().height(300.dp).padding(16.dp)
+        //modifier = Modifier.fillMaxWidth().height(300.dp).padding(16.dp)
+        modifier = Modifier
+            .fillMaxWidth().fillMaxHeight(0.8f).padding(16.dp)
             .draggable(
                 orientation = Orientation.Vertical,
                 state = rememberDraggableState { delta ->
