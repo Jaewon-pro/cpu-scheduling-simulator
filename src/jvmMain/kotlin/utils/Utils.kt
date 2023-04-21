@@ -1,23 +1,21 @@
 package utils
 
 import java.io.FileInputStream
-import java.util.*
 
 var taskHeader: List<String> = listOf()
 
 data class ProgramData (
     val tasks: List<Task>,
     val info: List<Info>,
-    //val contextSwitched: Int // 문맥교환 횟수
 )
 
-data class Info (
+data class Info ( // 시간순으로 실행한 Task 들 단위 시간 저장, 나중에 간트차트 출력을 위해서
     val pid: Int,
-    val time: Int,
-    val ranTime: Int,
+    val timestamp: Int, // Since when
+    val ranTime: Int, // How long executed
 )
 
-data class Task (
+data class Task ( // PID 를 기준으로 Task 단위 저장
     val pid: Int,
     val arrivalTime: Int,
     val executionTime: Int,
@@ -31,9 +29,16 @@ data class Task (
 
     fun completedTime() = arrivalTime + executionTime + waitedTime
     fun turnaroundTime() = executionTime + waitedTime
+    fun isFinished() = this.remainedTime == 0
+    fun reset() {
+        this.remainedTime = this.executionTime
+        this.waitedTime = 0
+        this.insertedTime = -1
+        this.responseTime = -1
+    }
 
     override fun toString(): String {
-        var str: String = "Task PID: $pid, Arrival time: $arrivalTime, Burst time: $executionTime"
+        var str = "Task PID: $pid, Arrival time: $arrivalTime, Burst time: $executionTime"
         if (priority >= 0) str += ", Priority: $priority"
         if (waitedTime != -1) str += ", Waited time: $waitedTime"
         return str
@@ -51,85 +56,10 @@ private fun parseStringToTask(string: String, index: Int): Task {
 }
 
 fun parseFromCSV(fileInputStream: FileInputStream): List<Task> {
-
     val reader = fileInputStream.bufferedReader()
     taskHeader = reader.readLine().split(',', ignoreCase = false)
     var index = 0
     return reader.lineSequence()
         .filter { it.isNotBlank() }
         .map { parseStringToTask(it, ++index) }.toList()
-}
-
-fun printResult(data: ProgramData): ProgramData {
-    data.tasks.forEach{ println(it) }
-    return data
-}
-
-
-fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int): ProgramData { // 선점형, priority, sjf 공용
-    var currentRunTime = 0
-    val readyPool = PriorityQueue(compare)
-    var currentRunTask: Task? = null
-    var idx = 0
-    val info: MutableList<Info> = mutableListOf(Info(-1, tasks[0].arrivalTime, 0))
-
-    while (idx < tasks.size) {
-        println("idx: $idx")
-        if (currentRunTime == tasks[idx].arrivalTime) {
-
-            if (currentRunTask === null) currentRunTask = tasks[idx]
-            else if (compare(currentRunTask, tasks[idx]) <= 0) { // 기존 Task 의 우선순위가 더 크면, 변화 X, current 계속 실행
-                tasks[idx].insertedTime = currentRunTime
-                readyPool.add(tasks[idx])
-            } else { // 새로 비교할 Task 의 우선순위가 더 크면
-                val ranTime = currentRunTime - info.last().time
-                if (ranTime != 0)  info += Info(currentRunTask.pid, currentRunTime, ranTime) // ranTime 이 0인 경우 방지
-
-                currentRunTask.insertedTime = currentRunTime
-                readyPool.add(currentRunTask)
-                currentRunTask = tasks[idx]
-            }
-            ++idx
-        }
-        ++currentRunTime
-        if (currentRunTask === null) continue
-
-        --currentRunTask.remainedTime
-        if (currentRunTask.remainedTime == 0) {
-            print(currentRunTask.pid)
-            println(": finished // at $currentRunTime")
-            info += Info(currentRunTask.pid, currentRunTime, currentRunTime - info.last().time)
-
-            if (readyPool.size == 0) { currentRunTask = null }
-            else {
-                val newRun = readyPool.remove()
-                newRun.waitedTime += currentRunTime - newRun.insertedTime
-                currentRunTask = newRun
-            }
-        }
-    }
-    if (currentRunTask != null) {
-        currentRunTime += currentRunTask.remainedTime
-        info += Info(currentRunTask.pid, currentRunTime, currentRunTask.remainedTime)
-        currentRunTask.remainedTime = 0
-    }
-    while (readyPool.isNotEmpty()) {
-        val newRun = readyPool.remove()
-
-        info += Info(newRun.pid, currentRunTime + newRun.remainedTime, newRun.remainedTime)
-        newRun.waitedTime += currentRunTime - newRun.insertedTime
-        currentRunTime += newRun.remainedTime
-        newRun.remainedTime = 0
-        print(newRun.pid)
-        println(": finished at $currentRunTime")
-    }
-    return ProgramData(tasks, info)
-}
-
-fun lazarus(tasks : List<Task>) { // reset tasks
-    tasks.forEach {
-        it.remainedTime = it.executionTime
-        it.insertedTime = -1
-        it.waitedTime = 0
-    }
 }

@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import utils.ProgramData
 import utils.Task
-import utils.lazarus
 import utils.parseFromCSV
 import java.awt.FileDialog
 import java.io.File
@@ -141,8 +140,8 @@ private fun runButton(enable: Boolean, selectedPolicy: Policy, tasks: List<Task>
         Button(enabled = enable,
             onClick = {
                 if (tasks != null) {
-                    if (tasks[0].executionTime != tasks[0].remainedTime) { // 이미 한번 실행해서 남은 시간이 0인 경우
-                        lazarus(tasks)
+                    if (tasks[0].isFinished()) { // 이미 한번 실행해서 남은 시간이 0인 경우
+                        tasks.forEach { it.reset() }
                     }
                     val result: ProgramData = when (selectedPolicy) {
                         Policy.FCFS -> policy.executeFCFS(tasks)

@@ -56,7 +56,7 @@ fun showChart(info: List<Info>) {
             )
     ) {
         items(info) {
-            chart((it.ranTime * 20).dp, it.pid.toString(), it.time)
+            chart((it.ranTime * 20).dp, it.pid.toString(), it.timestamp)
         }
     }
 }

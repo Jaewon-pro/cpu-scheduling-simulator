@@ -24,7 +24,7 @@ fun main() = application {
 
             menu(window,
                 tasks,
-                onLoader = { tasks = it; showResult1 = false },
+                onLoader = { tasks = it; info = null; showResult1 = false },
                 onPerformed = { info = it.info; showResult1 = true })
             if (!showResult1 && tasks != null) showTable(tasks!!)
             if (showResult1 && tasks != null && info != null) {

@@ -1,23 +1,28 @@
 package policy
 
-import utils.*
+import utils.CircularQueue
+import utils.Info
+import utils.ProgramData
+import utils.Task
 
-private fun runTask(tasks : List<Task>, quantum: Int): ProgramData { // Round Robin
+private fun runTaskRoundRobin(tasks : List<Task>, quantum: Int): ProgramData {
     val info: MutableList<Info> = mutableListOf(Info(-1, tasks[0].arrivalTime, 0)) // 처음에 0 표시
 
     var currentRunTime = tasks[0].arrivalTime
     val readyPool = CircularQueue<Task>(tasks.size + 1)
     readyPool.add(tasks[0])
+    tasks[0].responseTime = 0
     var nextIdx = 1
 
     while (readyPool.isNotEmpty()) {
-        val performed = readyPool.poll()
+        val performed: Task = readyPool.poll()
         val performedTime = if (performed.remainedTime >= quantum) quantum else performed.remainedTime % quantum
+        if (performed.responseTime == -1) performed.responseTime = currentRunTime
+
         currentRunTime += performedTime
         performed.remainedTime -= performedTime
 
         info += Info(performed.pid, currentRunTime, performedTime)
-
         println("${performed.pid}: ran, at $currentRunTime")
 
         while (nextIdx < tasks.size && currentRunTime >= tasks[nextIdx].arrivalTime) {
@@ -40,5 +45,5 @@ private fun runTask(tasks : List<Task>, quantum: Int): ProgramData { // Round Ro
 }
 
 fun executeRoundRobin(tasks: List<Task>, quantum: Int): ProgramData {
-    return runTask(tasks, quantum).let(::printResult)
+    return runTaskRoundRobin(tasks, quantum).let(::printResult)
 }
