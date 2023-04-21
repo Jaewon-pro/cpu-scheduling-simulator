@@ -37,27 +37,10 @@ private fun RowScope.TableCell(
 }
 
 @Composable
-fun showTable(tasks: List<Task>) {
-    if (!tasks[0].isFinished()) showTasksTable(tasks)
-}
-
-@Composable
-fun showResult(tasks: List<Task>, info: List<Info>) {
-    Column {
-        val avgWaitedTime = tasks.sumOf { it.waitedTime } / tasks.size.toFloat()
-        val avgResponseTime = tasks.sumOf { it.responseTime } / tasks.size.toFloat()
-        val avgTurnaroundTime = tasks.sumOf { it.turnaroundTime() } / tasks.size.toFloat()
-        val totalTime = info.last().timestamp
-        val contextSwitched = info.size - 2
-        averageResultTable(totalTime, avgWaitedTime, avgResponse = avgResponseTime, avgTurnaroundTime, contextSwitched)
-        resultTable(tasks)
-    }
-}
-
-@Composable
-private fun showTasksTable(tasks: List<Task>) {
+fun showTasksTable(tasks: List<Task>) {
+    if (tasks[0].isFinished()) return
     // Each cell of a column must have the same weight.
-    val weight: Float = ((tasks.size) / 100.0f) * 100 / 100.0f.roundToInt() // 요소를 100으로 나눈 퍼센트값
+    val weight: Float = (taskHeader.size / 100.0f) * 100 / 100.0f.roundToInt() // 요소를 100으로 나눈 퍼센트값
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -91,7 +74,22 @@ private fun showTasksTable(tasks: List<Task>) {
 }
 
 @Composable
-private fun averageResultTable(totalTime: Int, avgWaited: Float, avgResponse: Float, avgTurnaround: Float, contextSwitched: Int) {
+fun showResult(tasks: List<Task>, info: List<Info>) { // 성능 지표 테이블
+    Column {
+        val avgWaitedTime = tasks.sumOf { it.waitedTime } / tasks.size.toFloat()
+        val avgResponseTime = tasks.sumOf { it.responseTime } / tasks.size.toFloat()
+        val avgTurnaroundTime = tasks.sumOf { it.turnaroundTime() } / tasks.size.toFloat()
+        val totalTime = info.last().timestamp
+        val throughput: Float = tasks.size / totalTime.toFloat()
+        val contextSwitched = info.size - 2
+        averageResultTable(throughput, avgWaitedTime, avgResponse = avgResponseTime, avgTurnaroundTime, contextSwitched)
+        resultTable(tasks)
+    }
+}
+
+
+@Composable
+private fun averageResultTable(throughput: Float, avgWaited: Float, avgResponse: Float, avgTurnaround: Float, contextSwitched: Int) {
     val weight: Float = (5 / 100.0f) * 100 / 100.0f.roundToInt() // 요소를 100으로 나눈 퍼센트값
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -108,7 +106,7 @@ private fun averageResultTable(totalTime: Int, avgWaited: Float, avgResponse: Fl
         )) {
         item {
             Row(Modifier.background(Color(230,230,250))) {
-                TableCell(text = "Total Runtime", weight = weight)
+                TableCell(text = "Throughput", weight = weight)
                 TableCell(text = "Context Switch", weight = weight)
                 TableCell(text = "Avg Waited", weight = weight)
                 TableCell(text = "Avg Response", weight = weight)
@@ -117,7 +115,7 @@ private fun averageResultTable(totalTime: Int, avgWaited: Float, avgResponse: Fl
         }
         items(1) {
             Row(Modifier.fillMaxWidth()) {
-                TableCell(text = totalTime.toString(), weight = weight)
+                TableCell(text = throughput.toString(), weight = weight)
                 TableCell(text = contextSwitched.toString(), weight = weight)
                 TableCell(text = avgWaited.toString(), weight = weight)
                 TableCell(text = avgResponse.toString(), weight = weight)

@@ -27,13 +27,13 @@ internal fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int):
 
             if (currentRunTask === null) { currentRunTask = tasks[idx] }
             else if (compare(currentRunTask, tasks[idx]) <= 0) { // 기존 Task 의 우선순위가 더 크면, 변화 X, current 계속 실행
-                tasks[idx].insertedTime = currentRunTime
+                //tasks[idx].insertedTime = currentRunTime
                 readyPool.add(tasks[idx])
             } else { // 새로 비교할 Task 의 우선순위가 더 크면
                 val ranTime = currentRunTime - info.last().timestamp
                 if (ranTime != 0)  info += Info(currentRunTask.pid, currentRunTime, ranTime) // ranTime 이 0인 경우 방지
 
-                currentRunTask.insertedTime = currentRunTime
+                //currentRunTask.insertedTime = currentRunTime
                 tasks[idx].responseTime = currentRunTime // 새로 들어온 Task 의 첫 응답 시간 설정
                 readyPool.add(currentRunTask)
                 currentRunTask = tasks[idx]
@@ -48,14 +48,14 @@ internal fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int):
 
         --currentRunTask.remainedTime
         if (currentRunTask.isFinished()) {
-            print(currentRunTask.pid)
-            println(": finished ## at $currentRunTime")
+            println("${currentRunTask.pid}: finished ## at $currentRunTime")
+            currentRunTask.waitedTime = currentRunTime - currentRunTask.arrivalTime - currentRunTask.executionTime
             info += Info(currentRunTask.pid, currentRunTime, currentRunTime - info.last().timestamp)
 
             if (readyPool.isEmpty()) { currentRunTask = null }
             else {
                 val newRun = readyPool.remove()
-                newRun.waitedTime += currentRunTime - newRun.insertedTime
+                //newRun.waitedTime += currentRunTime - newRun.insertedTime
                 currentRunTask = newRun
                 if (currentRunTask.responseTime == -1) { currentRunTask.responseTime = currentRunTime }
             }
@@ -70,12 +70,12 @@ internal fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int):
         val newRun = readyPool.remove()
 
         info += Info(newRun.pid, currentRunTime + newRun.remainedTime, newRun.remainedTime)
-        newRun.waitedTime += currentRunTime - newRun.insertedTime
+        //newRun.waitedTime += currentRunTime - newRun.insertedTime
         if (newRun.responseTime == -1) { newRun.responseTime = currentRunTime }
         currentRunTime += newRun.remainedTime
         newRun.remainedTime = 0
-        print(newRun.pid)
-        println(": finished ! at $currentRunTime")
+        newRun.waitedTime = currentRunTime - newRun.arrivalTime - newRun.executionTime
+        println("${newRun.pid}: finished ! at $currentRunTime")
     }
     return ProgramData(tasks, info)
 }

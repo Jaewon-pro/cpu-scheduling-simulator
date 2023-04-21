@@ -24,7 +24,6 @@ data class Task ( // PID 를 기준으로 Task 단위 저장
 ) {
     var remainedTime: Int = executionTime
     var waitedTime: Int = 0 // 이건 1틱마다가 아닌 task 사이클 마다 계산
-    var insertedTime: Int = -1
     var responseTime: Int = -1 // 처음으로 응답한 시간
 
     fun completedTime() = arrivalTime + executionTime + waitedTime
@@ -33,7 +32,6 @@ data class Task ( // PID 를 기준으로 Task 단위 저장
     fun reset() {
         this.remainedTime = this.executionTime
         this.waitedTime = 0
-        this.insertedTime = -1
         this.responseTime = -1
     }
 

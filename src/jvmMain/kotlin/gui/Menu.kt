@@ -51,7 +51,7 @@ fun menu(window: ComposeWindow, tasks: List<Task>?, onLoader: (List<Task>) -> Un
                 value = quantum,
                 onValueChange = {
                         newValue ->
-                    quantum = newValue.replace(Regex("\\D+"), "")
+                    quantum = newValue.replace(Regex("\\D+"), "") // To permit only digit
                     val maxLen = 5
                     if (quantum.length > maxLen) quantum = quantum.slice(IntRange(0, maxLen))
                 },
@@ -76,8 +76,7 @@ private fun openFileButton(window: ComposeWindow, onValueSaved: (List<Task>) -> 
 
                 val openedTasks = parseFile(FileInputStream(openedFiles.first()))
                 onValueSaved(openedTasks)
-                print("파일 선택됨: ")
-                println(openedFiles.first().absoluteFile)
+                println("파일 선택됨: ${openedFiles.first().absoluteFile}")
             }
         }) {
             Text("Open File")

@@ -23,7 +23,7 @@ private fun runTaskRoundRobin(tasks : List<Task>, quantum: Int): ProgramData {
         performed.remainedTime -= performedTime
 
         info += Info(performed.pid, currentRunTime, performedTime)
-        println("${performed.pid}: ran, at $currentRunTime")
+        //println("${performed.pid}: ran, at $currentRunTime")
 
         while (nextIdx < tasks.size && currentRunTime >= tasks[nextIdx].arrivalTime) {
             readyPool.add(tasks[nextIdx])
@@ -32,7 +32,7 @@ private fun runTaskRoundRobin(tasks : List<Task>, quantum: Int): ProgramData {
 
         if (performed.remainedTime == 0) { // Job finished
             performed.waitedTime = currentRunTime - performed.arrivalTime - performed.executionTime
-            println("${performed.pid}: finished, at $currentRunTime")
+            println("${performed.pid}: finished,, at $currentRunTime")
         } else {
             readyPool.add(performed)
         }
