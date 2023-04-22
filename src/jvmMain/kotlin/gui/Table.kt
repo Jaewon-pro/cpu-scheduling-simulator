@@ -45,8 +45,7 @@ fun showTasksTable(tasks: List<Task>) {
     val coroutineScope = rememberCoroutineScope()
 
     // The LazyColumn will be our table. Notice the use of the weights below
-    LazyColumn(modifier = Modifier.fillMaxHeight(0.9f)
-        .fillMaxWidth().padding(16.dp)//.height(500.dp)
+    LazyColumn(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.9f).padding(16.dp)//.height(500.dp)
         .draggable(
             orientation = Orientation.Vertical,
             state = rememberDraggableState { delta ->
@@ -76,27 +75,34 @@ fun showTasksTable(tasks: List<Task>) {
 @Composable
 fun showResult(tasks: List<Task>, info: List<ChartInfo>) { // 성능 지표 테이블
     Column {
-        val avgWaitedTime = tasks.sumOf { it.waitedTime } / tasks.size.toFloat()
-        val avgResponseTime = tasks.sumOf { it.responseTime } / tasks.size.toFloat()
-        val avgTurnaroundTime = tasks.sumOf { it.turnaroundTime() } / tasks.size.toFloat()
+        val averages = mean(tasks)
         val totalTime = info.last().timestamp
         val throughput: Float = tasks.size / totalTime.toFloat()
         val contextSwitched = info.size - 2
-        averageResultTable(throughput, avgWaitedTime, avgResponse = avgResponseTime, avgTurnaroundTime, contextSwitched)
+        println(averages)
+        averageResultTable(throughput, averages, contextSwitched)
         resultTable(tasks)
     }
 }
 
+private fun mean(tasks: List<Task>): List<Float> {
+    var avgWaitedTime = 0.0f // Store the average of the array
+    var avgResponseTime = 0.0f
+    var avgTurnaroundTime = 0.0f
+
+    for (i in tasks.indices) { // Traverse tasks
+        avgWaitedTime += ((tasks[i].waitedTime - avgWaitedTime) / (i + 1))
+        avgResponseTime += ((tasks[i].responseTime - avgResponseTime) / (i + 1))
+        avgTurnaroundTime += ((tasks[i].turnaroundTime() - avgTurnaroundTime) / (i + 1))
+    }
+    return listOf(avgWaitedTime, avgResponseTime, avgTurnaroundTime)
+}
 
 @Composable
-private fun averageResultTable(throughput: Float, avgWaited: Float, avgResponse: Float, avgTurnaround: Float, contextSwitched: Int) {
+private fun averageResultTable(throughput: Float, averages: List<Float>, contextSwitched: Int) {
     val weight: Float = (5 / 100.0f) * 100 / 100.0f.roundToInt() // 요소를 100으로 나눈 퍼센트값
-    val scrollState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
 
-    LazyColumn(modifier = Modifier
-        .fillMaxWidth().padding(16.dp).height(80.dp)
-    ) {
+    LazyColumn(modifier = Modifier.fillMaxWidth().height(100.dp).padding(16.dp)) {
         item {
             Row(Modifier.background(Color(230,230,250))) {
                 TableCell(text = "Throughput", weight = weight)
@@ -110,9 +116,9 @@ private fun averageResultTable(throughput: Float, avgWaited: Float, avgResponse:
             Row(Modifier.fillMaxWidth()) {
                 TableCell(text = throughput.toString(), weight = weight)
                 TableCell(text = contextSwitched.toString(), weight = weight)
-                TableCell(text = avgWaited.toString(), weight = weight)
-                TableCell(text = avgResponse.toString(), weight = weight)
-                TableCell(text = avgTurnaround.toString(), weight = weight)
+                TableCell(text = averages[0].toString(), weight = weight)
+                TableCell(text = averages[1].toString(), weight = weight)
+                TableCell(text = averages[2].toString(), weight = weight)
             }
         }
     }
@@ -126,7 +132,6 @@ private fun resultTable(tasks: List<Task>) {
 
     LazyColumn(
         state = scrollState,
-        //modifier = Modifier.fillMaxWidth().height(300.dp).padding(16.dp)
         modifier = Modifier
             .fillMaxWidth().fillMaxHeight(0.8f).padding(16.dp)
             .draggable(

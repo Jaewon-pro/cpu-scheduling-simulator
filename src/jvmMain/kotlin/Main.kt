@@ -23,8 +23,7 @@ fun main() = application {
             var info: List<ChartInfo>? by remember { mutableStateOf(null) }
             var showResult1: Boolean by remember { mutableStateOf(false) }
 
-            menu(window,
-                tasks,
+            menu(window, tasks,
                 onLoader = { tasks = it; info = null; showResult1 = false },
                 onPerformed = { info = it.info; showResult1 = true })
             if (!showResult1 && tasks != null) { showTasksTable(tasks!!) }
