@@ -79,7 +79,6 @@ fun showResult(tasks: List<Task>, info: List<ChartInfo>) { // 성능 지표 테�
         val totalTime = info.last().timestamp
         val throughput: Float = tasks.size / totalTime.toFloat()
         val contextSwitched = info.size - 2
-        println(averages)
         averageResultTable(throughput, averages, contextSwitched)
         resultTable(tasks)
     }

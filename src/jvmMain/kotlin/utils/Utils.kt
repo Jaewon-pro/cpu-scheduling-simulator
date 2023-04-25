@@ -43,6 +43,12 @@ data class Task ( // PID 를 기준으로 Task 단위 저장
     }
 }
 
+fun parseFile(fileInputStream: FileInputStream): List<Task> {
+    val tasks = parseFromCSV(fileInputStream)
+    fileInputStream.close()
+    return tasks
+}
+
 private fun parseStringToTask(string: String, index: Int): Task {
     return if (taskHeader.contains("Priority")) {
         val (pid, arrival, execution, priority) = string.split(',', ignoreCase = false).map { it.toInt() }
@@ -53,7 +59,7 @@ private fun parseStringToTask(string: String, index: Int): Task {
     }
 }
 
-fun parseFromCSV(fileInputStream: FileInputStream): List<Task> {
+private fun parseFromCSV(fileInputStream: FileInputStream): List<Task> {
     val reader = fileInputStream.bufferedReader()
     taskHeader = reader.readLine().split(',', ignoreCase = false)
     var index = 0

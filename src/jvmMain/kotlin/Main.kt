@@ -4,7 +4,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import gui.menu
 import gui.showChartAll
@@ -12,22 +14,25 @@ import gui.showResult
 import gui.showTasksTable
 import utils.ChartInfo
 import utils.Task
-import java.awt.Dimension
 
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
-        window.title = "CPU Scheduler"
-        window.minimumSize = Dimension(800, 600)
+    //val icon = painterResource("icon.ico")
+    Window(
+        onCloseRequest = ::exitApplication,
+        state = WindowState(width = 800.dp, height = 600.dp),
+        title = "CPU Scheduling Simulator",
+    ) {
+        window.minimumSize = window.size
         Column {
             var tasks: List<Task>? by remember { mutableStateOf(null) }
             var info: List<ChartInfo>? by remember { mutableStateOf(null) }
-            var showResult1: Boolean by remember { mutableStateOf(false) }
+            var taskCompleted: Boolean by remember { mutableStateOf(false) }
 
             menu(window, tasks,
-                onLoader = { tasks = it; info = null; showResult1 = false },
-                onPerformed = { info = it.info; showResult1 = true })
-            if (!showResult1 && tasks != null) { showTasksTable(tasks!!) }
-            if (showResult1 && tasks != null && info != null) {
+                onLoader = { tasks = it; info = null; taskCompleted = false },
+                onPerformed = { info = it; taskCompleted = true })
+            if (!taskCompleted && tasks != null) { showTasksTable(tasks!!) }
+            if (taskCompleted && tasks != null && info != null) {
                 showResult(tasks!!, info!!)
                 showChartAll(info!!)
             }

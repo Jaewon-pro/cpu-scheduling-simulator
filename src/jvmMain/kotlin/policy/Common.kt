@@ -42,7 +42,6 @@ internal fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int):
         if (currentRunTask.responseTime == -1) { currentRunTask.responseTime = currentRunTime }
 
         ++currentRunTime
-
         --currentRunTask.remainedTime
         if (currentRunTask.isFinished()) {
             //println("${currentRunTask.pid}: finished ## at $currentRunTime")

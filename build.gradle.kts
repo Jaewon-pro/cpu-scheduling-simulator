@@ -1,4 +1,6 @@
+
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import proguard.gradle.ProGuardTask
 
 plugins {
     kotlin("multiplatform")
@@ -7,6 +9,7 @@ plugins {
 
 group = "com.example"
 version = "1.0-SNAPSHOT"
+
 
 repositories {
     google()
@@ -17,8 +20,8 @@ repositories {
 
 kotlin {
     jvm {
-        jvmToolchain(11)
-        withJava()
+        jvmToolchain(17)
+        //withJava()
     }
     sourceSets {
         val jvmMain by getting {
@@ -33,9 +36,14 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "MainKt"
+        buildTypes.release.proguard {
+            //isEnabled.set(false)
+            configurationFiles.from("proguard-rules.pro")
+        }
         nativeDistributions {
+
             targetFormats(TargetFormat.Dmg, TargetFormat.Exe, TargetFormat.Deb)
-            packageName = "ComposeCPU"
+            packageName = "CPU Scheduling Sim"
             packageVersion = "1.0.0"
             macOS {
                 iconFile.set(project.file("icon.icns"))
@@ -48,4 +56,28 @@ compose.desktop {
             }
         }
     }
+}
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.guardsquare:proguard-gradle:7.2.0")
+    }
+}
+
+// ...
+
+// Define task to obfuscate the JAR and output to <name>.min.jar
+tasks.register<ProGuardTask>("obfuscate") {
+    val packageUberJarForCurrentOS by tasks.getting
+    dependsOn(packageUberJarForCurrentOS)
+    val files = packageUberJarForCurrentOS.outputs.files
+    injars(files)
+    outjars(files.map { file -> File(file.parentFile, "${file.nameWithoutExtension}.min.jar") })
+
+    val library = if (System.getProperty("java.version").startsWith("1.")) "lib/rt.jar" else "jmods"
+    libraryjars("${System.getProperty("java.home")}/$library")
+
+    configuration("proguard-rules.pro")
 }
