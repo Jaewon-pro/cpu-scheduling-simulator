@@ -29,8 +29,9 @@ fun main() = application {
             var taskCompleted: Boolean by remember { mutableStateOf(false) }
 
             menu(window, tasks,
-                onLoader = { tasks = it; info = null; taskCompleted = false },
-                onPerformed = { info = it; taskCompleted = true })
+                onFileLoaded = { tasks = it; info = null; taskCompleted = false },
+                onPerformed = { info = it; taskCompleted = true }
+            )
             if (!taskCompleted && tasks != null) { showTasksTable(tasks!!) }
             if (taskCompleted && tasks != null && info != null) {
                 showResult(tasks!!, info!!)

@@ -5,16 +5,7 @@ import utils.ProgramData
 import utils.Task
 import java.util.*
 
-
-//internal fun runTaskNonPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int): ProgramData {
-//    var currentRunTime = 0
-//    val readyPool = PriorityQueue(compare)
-//    var currentRunTask: Task? = null
-//    var idx = 0
-//    val info: MutableList<Info> = mutableListOf(Info(-1, tasks[0].arrivalTime, ranTime = 0))
-//}
-
-internal fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int): ProgramData { // 선점형, priority, srtf 공용
+internal fun calculateTasks(tasks: List<Task>, compare: (Task, Task) -> Int, isNonPreemptive: Boolean): ProgramData {
     val info: MutableList<ChartInfo> = mutableListOf(ChartInfo(-1, tasks[0].arrivalTime, ranTime = 0))
 
     var currentRunTime = tasks[0].arrivalTime
@@ -26,11 +17,11 @@ internal fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int):
         while (idx < tasks.size && currentRunTime == tasks[idx].arrivalTime) { // 동일한 시간에 들어오는 경우 처리를 위해 if 가 아닌 while
 
             if (currentRunTask === null) { currentRunTask = tasks[idx] }
-            else if (compare(currentRunTask, tasks[idx]) <= 0) { // 기존 Task 의 우선순위가 더 크면, 변화 X, current 계속 실행
+            else if (compare(currentRunTask, tasks[idx]) <= 0 || isNonPreemptive) { // 기존 Task 의 우선순위가 더 크면, 변화 X, current 계속 실행
                 readyPool.add(tasks[idx])
-            } else { // 새로 비교할 Task 의 우선순위가 더 크면
+            } else { // If the priority of the new task is more urgent. 새로 비교할 Task 의 우선순위가 더 크면
                 val ranTime = currentRunTime - info.last().timestamp
-                if (ranTime != 0)  info += ChartInfo(currentRunTask.pid, currentRunTime, ranTime) // ranTime 이 0인 경우 방지
+                if (ranTime != 0)  info += ChartInfo(currentRunTask.pid, currentRunTime, ranTime) // To ignore if ranTime is zero
 
                 tasks[idx].responseTime = currentRunTime // 새로 들어온 Task 의 첫 응답 시간 설정
                 readyPool.add(currentRunTask)
@@ -74,9 +65,7 @@ internal fun runTaskPreemptive(tasks: List<Task>, compare: (Task, Task) -> Int):
     return ProgramData(tasks, info)
 }
 
-
-
-internal fun printResult(data: ProgramData): ProgramData {
-    data.tasks.forEach{ println(it) }
-    return data
-}
+//internal fun printResult(data: ProgramData): ProgramData {
+//    data.tasks.forEach{ println(it) }
+//    return data
+//}

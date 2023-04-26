@@ -1,6 +1,6 @@
 package utils
 
-import java.io.FileInputStream
+import java.io.File
 
 var taskHeader: List<String> = listOf()
 
@@ -43,10 +43,13 @@ data class Task ( // PID 를 기준으로 Task 단위 저장
     }
 }
 
-fun parseFile(fileInputStream: FileInputStream): List<Task> {
-    val tasks = parseFromCSV(fileInputStream)
-    fileInputStream.close()
-    return tasks
+fun parseTasksFromFile(file: File): List<Task> {
+    val reader = file.bufferedReader()
+    taskHeader = reader.readLine().split(',', ignoreCase = false)
+    var index = 0
+    return reader.lineSequence()
+        .filter { it.isNotBlank() }
+        .map { parseStringToTask(it, ++index) }.toList()
 }
 
 private fun parseStringToTask(string: String, index: Int): Task {
@@ -57,13 +60,4 @@ private fun parseStringToTask(string: String, index: Int): Task {
         val (pid, arrival, execution) = string.split(',', ignoreCase = false).map { it.toInt() }
         Task(pid, arrival, execution, -1, index)
     }
-}
-
-private fun parseFromCSV(fileInputStream: FileInputStream): List<Task> {
-    val reader = fileInputStream.bufferedReader()
-    taskHeader = reader.readLine().split(',', ignoreCase = false)
-    var index = 0
-    return reader.lineSequence()
-        .filter { it.isNotBlank() }
-        .map { parseStringToTask(it, ++index) }.toList()
 }
