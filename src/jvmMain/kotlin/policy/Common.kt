@@ -5,7 +5,7 @@ import utils.ProgramData
 import utils.Task
 import java.util.*
 
-internal fun calculateTasks(tasks: List<Task>, compare: (Task, Task) -> Int, isNonPreemptive: Boolean): ProgramData {
+internal fun calculateTasks(tasks: List<Task>, compare: (Task, Task) -> Int, isPreemptive: Boolean): ProgramData {
     val info: MutableList<ChartInfo> = mutableListOf(ChartInfo(-1, tasks[0].arrivalTime, ranTime = 0))
 
     var currentRunTime = tasks[0].arrivalTime
@@ -16,12 +16,18 @@ internal fun calculateTasks(tasks: List<Task>, compare: (Task, Task) -> Int, isN
     while (idx < tasks.size) {
         while (idx < tasks.size && currentRunTime == tasks[idx].arrivalTime) { // 동일한 시간에 들어오는 경우 처리를 위해 if 가 아닌 while
 
-            if (currentRunTask === null) { currentRunTask = tasks[idx] }
-            else if (compare(currentRunTask, tasks[idx]) <= 0 || isNonPreemptive) { // 기존 Task 의 우선순위가 더 크면, 변화 X, current 계속 실행
+            if (currentRunTask === null) {
+                currentRunTask = tasks[idx]
+            } else if (compare(currentRunTask, tasks[idx]) <= 0 || !isPreemptive) {
+                // If It's not preemptive, simply add it to the ready pool without comparing it to other tasks.
+                // Or if It's preemptive, then compare the priority of 2 tasks.
+                // 기존 Task 의 우선순위가 더 크면, 변화 X, current 계속 실행
                 readyPool.add(tasks[idx])
             } else { // If the priority of the new task is more urgent. 새로 비교할 Task 의 우선순위가 더 크면
                 val ranTime = currentRunTime - info.last().timestamp
-                if (ranTime != 0)  info += ChartInfo(currentRunTask.pid, currentRunTime, ranTime) // To ignore if ranTime is zero
+                if (ranTime != 0) {
+                    info += ChartInfo(currentRunTask.pid, currentRunTime, ranTime)
+                } // To ignore if ranTime is zero
 
                 tasks[idx].responseTime = currentRunTime // 새로 들어온 Task 의 첫 응답 시간 설정
                 readyPool.add(currentRunTask)
@@ -56,7 +62,9 @@ internal fun calculateTasks(tasks: List<Task>, compare: (Task, Task) -> Int, isN
         val newRun = readyPool.remove()
 
         info += ChartInfo(newRun.pid, currentRunTime + newRun.remainedTime, newRun.remainedTime)
-        if (newRun.responseTime == -1) { newRun.responseTime = currentRunTime }
+        if (newRun.responseTime == -1) {
+            newRun.responseTime = currentRunTime
+        }
         currentRunTime += newRun.remainedTime
         newRun.remainedTime = 0
         newRun.waitedTime = currentRunTime - newRun.arrivalTime - newRun.executionTime

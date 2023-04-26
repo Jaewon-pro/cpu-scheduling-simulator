@@ -1,11 +1,11 @@
 package policy
 
-import utils.CircularQueue
 import utils.ChartInfo
+import utils.CircularQueue
 import utils.ProgramData
 import utils.Task
 
-private fun runTaskRoundRobin(tasks : List<Task>, quantum: Int): ProgramData {
+private fun calculateRoundRobin(tasks : List<Task>, quantum: Int): ProgramData {
     val info: MutableList<ChartInfo> = mutableListOf(ChartInfo(-1, tasks[0].arrivalTime, 0)) // 처음에 0 표시
 
     var currentRunTime = tasks[0].arrivalTime
@@ -42,5 +42,5 @@ private fun runTaskRoundRobin(tasks : List<Task>, quantum: Int): ProgramData {
 }
 
 fun executeRoundRobin(tasks: List<Task>, quantum: Int): ProgramData {
-    return runTaskRoundRobin(tasks, quantum)//.let(::printResult)
+    return calculateRoundRobin(tasks, quantum)//.let(::printResult)
 }

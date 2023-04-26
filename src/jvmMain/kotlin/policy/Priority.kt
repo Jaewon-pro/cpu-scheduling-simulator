@@ -7,9 +7,9 @@ import utils.Task
 private fun comparePriority(a: Task, b: Task): Int = compareValuesBy(a, b, { it.priority }, { it.arrivalTime })
 
 fun executePriorityNonPreemptive(tasks: List<Task>): ProgramData {
-    return calculateTasks(tasks, ::comparePriority, isNonPreemptive = true)//.let(::printResult)
+    return calculateTasks(tasks, ::comparePriority, isPreemptive = false)//.let(::printResult)
 }
 
 fun executePriority(tasks: List<Task>): ProgramData {
-    return calculateTasks(tasks, ::comparePriority, isNonPreemptive = false)//.let(::printResult)
+    return calculateTasks(tasks, ::comparePriority, isPreemptive = true)//.let(::printResult)
 }
