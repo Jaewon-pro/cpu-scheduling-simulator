@@ -1,15 +1,15 @@
 package policy
 
+import utils.Process
 import utils.ProgramData
-import utils.Task
 
 // The top priority, designated as '1', represents the utmost urgency.
-private fun comparePriority(a: Task, b: Task): Int = compareValuesBy(a, b, { it.priority }, { it.arrivalTime })
+private fun comparePriority(a: Process, b: Process): Int = compareValuesBy(a, b, { it.priority }, { it.arrivalTime })
 
-fun executePriorityNonPreemptive(tasks: List<Task>): ProgramData {
-    return calculateTasks(tasks, ::comparePriority, isPreemptive = false)//.let(::printResult)
+fun executePriorityNonPreemptive(processes: List<Process>): ProgramData {
+    return calculateTasks(processes, ::comparePriority, isPreemptive = false)//.let(::printResult)
 }
 
-fun executePriority(tasks: List<Task>): ProgramData {
-    return calculateTasks(tasks, ::comparePriority, isPreemptive = true)//.let(::printResult)
+fun executePriority(processes: List<Process>): ProgramData {
+    return calculateTasks(processes, ::comparePriority, isPreemptive = true)//.let(::printResult)
 }

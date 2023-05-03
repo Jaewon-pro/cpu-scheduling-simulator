@@ -1,4 +1,3 @@
-
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import proguard.gradle.ProGuardTask
 
@@ -12,7 +11,7 @@ version = "1.0-SNAPSHOT"
 
 
 repositories {
-    google()
+//    google()
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 }
@@ -37,7 +36,6 @@ compose.desktop {
     application {
         mainClass = "MainKt"
         buildTypes.release.proguard {
-            //isEnabled.set(false)
             configurationFiles.from("proguard-rules.pro")
         }
         nativeDistributions {
@@ -65,9 +63,6 @@ buildscript {
         classpath("com.guardsquare:proguard-gradle:7.2.0")
     }
 }
-
-// ...
-
 // Define task to obfuscate the JAR and output to <name>.min.jar
 tasks.register<ProGuardTask>("obfuscate") {
     val packageUberJarForCurrentOS by tasks.getting

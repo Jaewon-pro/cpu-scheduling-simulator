@@ -13,10 +13,9 @@ import gui.showChartAll
 import gui.showResult
 import gui.showTasksTable
 import utils.ChartInfo
-import utils.Task
+import utils.Process
 
 fun main() = application {
-    //val icon = painterResource("icon.ico")
     Window(
         onCloseRequest = ::exitApplication,
         state = WindowState(width = 800.dp, height = 600.dp),
@@ -24,17 +23,19 @@ fun main() = application {
     ) {
         window.minimumSize = window.size
         Column {
-            var tasks: List<Task>? by remember { mutableStateOf(null) }
+            var processes: List<Process>? by remember { mutableStateOf(null) }
             var info: List<ChartInfo>? by remember { mutableStateOf(null) }
             var taskCompleted: Boolean by remember { mutableStateOf(false) }
 
-            menu(window, tasks,
-                onFileLoaded = { tasks = it; info = null; taskCompleted = false },
+            menu(window, processes,
+                onFileLoaded = { processes = it; info = null; taskCompleted = false },
                 onPerformed = { info = it; taskCompleted = true }
             )
-            if (!taskCompleted && tasks != null) { showTasksTable(tasks!!) }
-            if (taskCompleted && tasks != null && info != null) {
-                showResult(tasks!!, info!!)
+            if (!taskCompleted && processes != null) {
+                showTasksTable(processes!!)
+            }
+            if (taskCompleted && processes != null && info != null) {
+                showResult(processes!!, info!!)
                 showChartAll(info!!)
             }
         }

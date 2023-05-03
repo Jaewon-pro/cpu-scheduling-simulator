@@ -16,16 +16,17 @@ import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import utils.ChartInfo
+import utils.Process
 import utils.ProgramData
-import utils.Task
 import utils.parseTasksFromFile
 import java.awt.FileDialog
 import java.io.File
 
 private enum class Policy(val label: String) {
     FCFS("FCFS"), SJF("SJF(Non-Preemptive)"), SRTF("SRTF(Preemptive)"),
-    PRIORITY_NP("Priority(Non-Preemptive)"), PRIORITY("Priority(Preemptive)"), ROUND_ROBIN("Round Robin")
+    PRIORITY_NP("Priority(Non-Preemptive)"), PRIORITY("Priority(Preemptive)"), ROUND_ROBIN("Round Robin"),
     ;
+
     companion object {
         fun fromString(name: String): Policy =
             values().find { it.label.equals(name, ignoreCase = true) } ?: throw IllegalArgumentException()
@@ -33,7 +34,12 @@ private enum class Policy(val label: String) {
 }
 
 @Composable
-fun menu(window: ComposeWindow, tasks: List<Task>?, onFileLoaded: (List<Task>) -> Unit, onPerformed: (List<ChartInfo>) -> Unit) {
+fun menu(
+    window: ComposeWindow,
+    processes: List<Process>?,
+    onFileLoaded: (List<Process>) -> Unit,
+    onPerformed: (List<ChartInfo>) -> Unit
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -54,10 +60,12 @@ fun menu(window: ComposeWindow, tasks: List<Task>?, onFileLoaded: (List<Task>) -
             selectedPolicy = selectedPolicy.label,
             onPolicySelected = { selectedPolicy = Policy.fromString(it) }
         )
-        if (selectedPolicy === Policy.ROUND_ROBIN) { inputDigit(quantum) { quantum = it } }
-        val isRunnable: Boolean = (tasks != null) && !((selectedPolicy == Policy.ROUND_ROBIN) && quantum.isEmpty())
+        if (selectedPolicy == Policy.ROUND_ROBIN) {
+            inputDigit("Quantum:", quantum) { quantum = it }
+        }
+        val isRunnable: Boolean = (processes != null) && !((selectedPolicy == Policy.ROUND_ROBIN) && quantum.isEmpty())
         runButton(
-            isRunnable, selectedPolicy, tasks,
+            isRunnable, selectedPolicy, processes,
             if (quantum.isEmpty()) 0 else quantum.toInt(),
             onValueSaved = { result -> onPerformed(result.info) }
         )
@@ -66,19 +74,22 @@ fun menu(window: ComposeWindow, tasks: List<Task>?, onFileLoaded: (List<Task>) -
 }
 
 @Composable
-private fun openFileButton(window: ComposeWindow, onValueSaved: (List<Task>) -> Unit, onFileNameSaved: (String) -> Unit) {
+private fun openFileButton(
+    window: ComposeWindow,
+    onValueSaved: (List<Process>) -> Unit,
+    onFileNameSaved: (String) -> Unit
+) {
     Box {
         Button(onClick = {
             val openedFile: File? = openFileDialog(window, "Select a CSV file to run", listOf(".csv"))
-            if (openedFile == null) { println("Please, select the file") }
-            else {
+            if (openedFile != null) {
                 val openedTasks = parseTasksFromFile(openedFile)
                 onValueSaved(openedTasks)
                 onFileNameSaved(openedFile.name)
-                println("File Selected: ${openedFile.absoluteFile}")
+                //println("File Selected: ${openedFile.absoluteFile}")
             }
         }) {
-            Icon(Icons.Default.Search,null)
+            Icon(Icons.Default.Search, null)
             Text("Open File")
         }
     }
@@ -103,12 +114,13 @@ fun policySelector(
     onPolicySelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Row(modifier = Modifier
-        .wrapContentSize()
-        .clickable(onClick = { expanded = true }),
+    Row(
+        modifier = Modifier
+            .wrapContentSize()
+            .clickable(onClick = { expanded = true }),
         verticalAlignment = Alignment.CenterVertically // For Icon
     ) {
-        Icon(Icons.Default.List,null)
+        Icon(Icons.Default.List, null)
         Text(modifier = Modifier.padding(16.dp), text = selectedPolicy)
         DropdownMenu(expanded = expanded,
             onDismissRequest = { expanded = false }
@@ -118,7 +130,7 @@ fun policySelector(
                     onClick = {
                         onPolicySelected(item)
                         expanded = false
-                        println("Policy selected: [$item]")
+                        //println("Policy selected: [$item]")
                     }
                 ) { Text(text = item) }
             }
@@ -127,14 +139,16 @@ fun policySelector(
 }
 
 @Composable
-private fun inputDigit(inputLabel: String, onChanged: (String) -> Unit) {
+private fun inputDigit(label: String, inputLabel: String, onChanged: (String) -> Unit) {
+    Text(label)
     TextField(
         value = inputLabel,
         modifier = Modifier.size(100.dp),
         onValueChange = { newValue ->
             val matchResult = Regex("^[0-9]{0,5}\$").find(newValue) // To permit only digit
             if (matchResult != null) {
-                val newQuantum: String = if(matchResult.value == "0" || matchResult.value == "") "" else matchResult.value
+                val newQuantum: String =
+                    if (matchResult.value == "0" || matchResult.value == "") "" else matchResult.value
                 onChanged(newQuantum)
             }
         },
@@ -142,22 +156,32 @@ private fun inputDigit(inputLabel: String, onChanged: (String) -> Unit) {
 }
 
 @Composable
-private fun runButton(enable: Boolean, selectedPolicy: Policy, tasks: List<Task>?, quantum: Int, onValueSaved: (ProgramData) -> Unit) {
+private fun runButton(
+    enable: Boolean,
+    selectedPolicy: Policy,
+    processes: List<Process>?,
+    quantum: Int,
+    onValueSaved: (ProgramData) -> Unit
+) {
     Box {
         Button(
             enabled = enable,
             onClick = {
-                if (tasks == null) { return@Button }
-                if (tasks[0].isFinished()) { tasks.forEach { it.reset() } }  // 이미 한번 실행해서 남은 시간이 0인 경우
+                if (processes == null) {
+                    return@Button
+                }
+                if (processes[0].isFinished()) {
+                    processes.forEach { it.reset() }
+                }  // 이미 한번 실행해서 남은 시간이 0인 경우
                 val result: ProgramData = when (selectedPolicy) {
-                    Policy.FCFS -> policy.executeFCFS(tasks)
-                    Policy.SJF -> policy.executeSJF(tasks)
-                    Policy.SRTF -> policy.executeSRTF(tasks)
-                    Policy.PRIORITY_NP -> policy.executePriorityNonPreemptive(tasks)
-                    Policy.PRIORITY -> policy.executePriority(tasks)
-                    Policy.ROUND_ROBIN -> policy.executeRoundRobin(tasks, quantum)
+                    Policy.FCFS -> policy.executeFCFS(processes)
+                    Policy.SJF -> policy.executeSJF(processes)
+                    Policy.SRTF -> policy.executeSRTF(processes)
+                    Policy.PRIORITY_NP -> policy.executePriorityNonPreemptive(processes)
+                    Policy.PRIORITY -> policy.executePriority(processes)
+                    Policy.ROUND_ROBIN -> policy.executeRoundRobin(processes, quantum)
                 }
                 onValueSaved(result) // To save result data into Main
-            }) { Icon(Icons.Default.PlayArrow,null); Text("Run") }
+            }) { Icon(Icons.Default.PlayArrow, null); Text("Run") }
     }
 }

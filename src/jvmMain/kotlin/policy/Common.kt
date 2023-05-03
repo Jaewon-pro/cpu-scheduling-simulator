@@ -1,62 +1,76 @@
 package policy
 
 import utils.ChartInfo
+import utils.Process
 import utils.ProgramData
-import utils.Task
 import java.util.*
 
-internal fun calculateTasks(tasks: List<Task>, compare: (Task, Task) -> Int, isPreemptive: Boolean): ProgramData {
-    val info: MutableList<ChartInfo> = mutableListOf(ChartInfo(-1, tasks[0].arrivalTime, ranTime = 0))
+internal fun calculateTasks(
+    processes: List<Process>,
+    compare: (Process, Process) -> Int,
+    isPreemptive: Boolean
+): ProgramData {
+    val info: MutableList<ChartInfo> = mutableListOf(ChartInfo(-1, processes[0].arrivalTime, ranTime = 0))
 
-    var currentRunTime = tasks[0].arrivalTime
+    var currentRunTime = processes[0].arrivalTime
     val readyPool = PriorityQueue(compare)
-    var currentRunTask: Task? = null
+    var currentRunProcess: Process? = null
     var idx = 0
 
-    while (idx < tasks.size) {
-        while (idx < tasks.size && currentRunTime == tasks[idx].arrivalTime) { // 동일한 시간에 들어오는 경우 처리를 위해 if 가 아닌 while
+    while (idx < processes.size) {
+        while (idx < processes.size && currentRunTime == processes[idx].arrivalTime) { // 동일한 시간에 들어오는 경우 처리를 위해 if 가 아닌 while
 
-            if (currentRunTask === null) {
-                currentRunTask = tasks[idx]
-            } else if (compare(currentRunTask, tasks[idx]) <= 0 || !isPreemptive) {
+            if (currentRunProcess === null) {
+                currentRunProcess = processes[idx]
+            } else if (compare(currentRunProcess, processes[idx]) <= 0 || !isPreemptive) {
                 // If It's not preemptive, simply add it to the ready pool without comparing it to other tasks.
                 // Or if It's preemptive, then compare the priority of 2 tasks.
                 // 기존 Task 의 우선순위가 더 크면, 변화 X, current 계속 실행
-                readyPool.add(tasks[idx])
+                readyPool.add(processes[idx])
             } else { // If the priority of the new task is more urgent. 새로 비교할 Task 의 우선순위가 더 크면
                 val ranTime = currentRunTime - info.last().timestamp
                 if (ranTime != 0) {
-                    info += ChartInfo(currentRunTask.pid, currentRunTime, ranTime)
+                    info += ChartInfo(currentRunProcess.pid, currentRunTime, ranTime)
                 } // To ignore if ranTime is zero
 
-                tasks[idx].responseTime = currentRunTime // 새로 들어온 Task 의 첫 응답 시간 설정
-                readyPool.add(currentRunTask)
-                currentRunTask = tasks[idx]
+                processes[idx].responseTime = currentRunTime // 새로 들어온 Task 의 첫 응답 시간 설정
+                readyPool.add(currentRunProcess)
+                currentRunProcess = processes[idx]
             }
             ++idx
         }
-        if (currentRunTask === null) { continue }
-        if (currentRunTask.responseTime == -1) { currentRunTask.responseTime = currentRunTime }
+        if (currentRunProcess === null) {
+            continue
+        }
+        if (currentRunProcess.responseTime == -1) {
+            currentRunProcess.responseTime = currentRunTime
+        }
 
         ++currentRunTime
-        --currentRunTask.remainedTime
-        if (currentRunTask.isFinished()) {
-            //println("${currentRunTask.pid}: finished ## at $currentRunTime")
-            currentRunTask.waitedTime = currentRunTime - currentRunTask.arrivalTime - currentRunTask.executionTime
-            info += ChartInfo(currentRunTask.pid, currentRunTime, currentRunTime - info.last().timestamp)
+        --currentRunProcess.remainedTime
+        if (currentRunProcess.isFinished()) {
+//            println("${currentRunProcess.pid}: finished ## at $currentRunTime")
+            currentRunProcess.waitedTime =
+                currentRunTime - currentRunProcess.arrivalTime - currentRunProcess.executionTime
+            info += ChartInfo(currentRunProcess.pid, currentRunTime, currentRunTime - info.last().timestamp)
 
-            if (readyPool.isEmpty()) { currentRunTask = null }
-            else {
+            if (readyPool.isEmpty()) {
+                currentRunProcess = null
+            } else {
                 val newRun = readyPool.remove()
-                currentRunTask = newRun
-                if (currentRunTask.responseTime == -1) { currentRunTask.responseTime = currentRunTime }
+                currentRunProcess = newRun
+                if (currentRunProcess.responseTime == -1) {
+                    currentRunProcess.responseTime = currentRunTime
+                }
             }
         }
     }
-    if (currentRunTask != null) {
-        currentRunTime += currentRunTask.remainedTime
-        info += ChartInfo(currentRunTask.pid, currentRunTime, currentRunTime - currentRunTask.responseTime)
-        currentRunTask.remainedTime = 0
+    if (currentRunProcess != null) {
+//        println("${currentRunProcess.pid}: current time: ${currentRunTime}, remained: ${currentRunProcess.remainedTime}")
+        currentRunTime += currentRunProcess.remainedTime
+        info += ChartInfo(currentRunProcess.pid, currentRunTime, currentRunTime - info.last().timestamp)
+        currentRunProcess.waitedTime = currentRunTime - currentRunProcess.arrivalTime - currentRunProcess.executionTime
+        currentRunProcess.remainedTime = 0
     }
     while (readyPool.isNotEmpty()) {
         val newRun = readyPool.remove()
@@ -68,12 +82,7 @@ internal fun calculateTasks(tasks: List<Task>, compare: (Task, Task) -> Int, isP
         currentRunTime += newRun.remainedTime
         newRun.remainedTime = 0
         newRun.waitedTime = currentRunTime - newRun.arrivalTime - newRun.executionTime
-        //println("${newRun.pid}: finished ! at $currentRunTime")
+//        println("${newRun.pid}: finished ! at $currentRunTime")
     }
-    return ProgramData(tasks, info)
+    return ProgramData(processes, info)
 }
-
-//internal fun printResult(data: ProgramData): ProgramData {
-//    data.tasks.forEach{ println(it) }
-//    return data
-//}

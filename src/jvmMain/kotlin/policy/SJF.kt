@@ -1,14 +1,14 @@
 package policy
 
+import utils.Process
 import utils.ProgramData
-import utils.Task
 
-private fun compareSJF(a: Task, b: Task): Int = compareValuesBy(a, b, { it.remainedTime }, { it.arrivalTime })
+private fun compareSJF(a: Process, b: Process): Int = compareValuesBy(a, b, { it.remainedTime }, { it.arrivalTime })
 
-fun executeSJF(tasks: List<Task>): ProgramData {
-    return calculateTasks(tasks, ::compareSJF, isPreemptive = false)
+fun executeSJF(processes: List<Process>): ProgramData {
+    return calculateTasks(processes, ::compareSJF, isPreemptive = false)
 }
 
-fun executeSRTF(tasks: List<Task>): ProgramData {
-    return calculateTasks(tasks, ::compareSJF, isPreemptive = true)//.let(::printResult)
+fun executeSRTF(processes: List<Process>): ProgramData {
+    return calculateTasks(processes, ::compareSJF, isPreemptive = true)//.let(::printResult)
 }

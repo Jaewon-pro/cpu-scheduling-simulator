@@ -5,7 +5,7 @@ import java.io.File
 var taskHeader: List<String> = listOf()
 
 data class ProgramData (
-    val tasks: List<Task>,
+    val processes: List<Process>,
     val info: List<ChartInfo>,
 )
 
@@ -15,7 +15,7 @@ data class ChartInfo ( // 시간순으로 실행한 Task 들 단위 시간 저�
     val ranTime: Int, // How long executed
 )
 
-data class Task ( // PID 를 기준으로 Task 단위 저장
+data class Process ( // PID 를 기준으로 Task 단위 저장
     val pid: Int,
     val arrivalTime: Int,
     val executionTime: Int,
@@ -43,7 +43,7 @@ data class Task ( // PID 를 기준으로 Task 단위 저장
     }
 }
 
-fun parseTasksFromFile(file: File): List<Task> {
+fun parseTasksFromFile(file: File): List<Process> {
     val reader = file.bufferedReader()
     taskHeader = reader.readLine().split(',', ignoreCase = false)
     var index = 0
@@ -52,12 +52,12 @@ fun parseTasksFromFile(file: File): List<Task> {
         .map { parseStringToTask(it, ++index) }.toList()
 }
 
-private fun parseStringToTask(string: String, index: Int): Task {
+private fun parseStringToTask(string: String, index: Int): Process {
     return if (taskHeader.contains("Priority")) {
         val (pid, arrival, execution, priority) = string.split(',', ignoreCase = false).map { it.toInt() }
-        Task(pid, arrival, execution, priority, index)
+        Process(pid, arrival, execution, priority, index)
     } else {
         val (pid, arrival, execution) = string.split(',', ignoreCase = false).map { it.toInt() }
-        Task(pid, arrival, execution, -1, index)
+        Process(pid, arrival, execution, -1, index)
     }
 }

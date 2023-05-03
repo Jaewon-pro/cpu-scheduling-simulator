@@ -2,45 +2,45 @@ package policy
 
 import utils.ChartInfo
 import utils.CircularQueue
+import utils.Process
 import utils.ProgramData
-import utils.Task
 
-private fun calculateRoundRobin(tasks : List<Task>, quantum: Int): ProgramData {
-    val info: MutableList<ChartInfo> = mutableListOf(ChartInfo(-1, tasks[0].arrivalTime, 0)) // 처음에 0 표시
+private fun calculateRoundRobin(processes : List<Process>, quantum: Int): ProgramData {
+    val info: MutableList<ChartInfo> = mutableListOf(ChartInfo(-1, processes[0].arrivalTime, 0)) // 처음에 0 표시
 
-    var currentRunTime = tasks[0].arrivalTime
-    val readyPool = CircularQueue<Task>(tasks.size + 1)
-    readyPool.add(tasks[0])
-    tasks[0].responseTime = 0
+    var currentRunTime = processes[0].arrivalTime
+    val readyPool = CircularQueue<Process>(processes.size + 1)
+    readyPool.add(processes[0])
+    processes[0].responseTime = 0
     var nextIdx = 1
 
     while (readyPool.isNotEmpty()) {
-        val performed: Task = readyPool.poll()
-        val performedTime = if (performed.remainedTime >= quantum) quantum else performed.remainedTime % quantum
-        if (performed.responseTime == -1) performed.responseTime = currentRunTime
+        val newRunProcess: Process = readyPool.poll()
+        val performedTime = if (newRunProcess.remainedTime >= quantum) quantum else newRunProcess.remainedTime % quantum
+        if (newRunProcess.responseTime == -1) newRunProcess.responseTime = currentRunTime
 
         currentRunTime += performedTime
-        performed.remainedTime -= performedTime
+        newRunProcess.remainedTime -= performedTime
 
-        info += ChartInfo(performed.pid, currentRunTime, performedTime) // ran at $currentRunTime
+        info += ChartInfo(newRunProcess.pid, currentRunTime, performedTime) // ran at $currentRunTime
 
-        while (nextIdx < tasks.size && currentRunTime >= tasks[nextIdx].arrivalTime) {
-            readyPool.add(tasks[nextIdx])
+        while (nextIdx < processes.size && currentRunTime >= processes[nextIdx].arrivalTime) {
+            readyPool.add(processes[nextIdx])
             ++nextIdx
         }
 
-        if (performed.remainedTime == 0) { // Job finished
-            performed.waitedTime = currentRunTime - performed.arrivalTime - performed.executionTime
+        if (newRunProcess.remainedTime == 0) { // Job finished
+            newRunProcess.waitedTime = currentRunTime - newRunProcess.arrivalTime - newRunProcess.executionTime
             //println("${performed.pid}: finished,, at $currentRunTime")
         } else {
-            readyPool.add(performed)
+            readyPool.add(newRunProcess)
         }
     }
 //    println("Total Executed time : $currentRunTime")
 //    println("Context Switched : ${info.size - 2}")
-    return ProgramData(tasks, info)
+    return ProgramData(processes, info)
 }
 
-fun executeRoundRobin(tasks: List<Task>, quantum: Int): ProgramData {
-    return calculateRoundRobin(tasks, quantum)//.let(::printResult)
+fun executeRoundRobin(processes: List<Process>, quantum: Int): ProgramData {
+    return calculateRoundRobin(processes, quantum)
 }
