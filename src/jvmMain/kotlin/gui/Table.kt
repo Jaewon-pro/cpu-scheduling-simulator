@@ -84,7 +84,6 @@ fun showResult(processes: List<Process>, info: List<ChartInfo>) { // 성능 지�
         val throughput: Float = processes.size / totalTime.toFloat()
         val contextSwitched = info.size - 2
         averageResultTable(throughput, averages, contextSwitched)
-        resultTable(processes)
     }
 }
 
@@ -98,7 +97,7 @@ private fun getAvgList(processes: List<Process>): List<Float> {
         avgResponseTime += ((processes[i].responseTime - avgResponseTime) / (i + 1))
         avgTurnaroundTime += ((processes[i].turnaroundTime() - avgTurnaroundTime) / (i + 1))
     }
-    println(listOf(avgWaitedTime, avgResponseTime, avgTurnaroundTime));
+//    println(listOf(avgWaitedTime, avgResponseTime, avgTurnaroundTime))
     return listOf(avgWaitedTime, avgResponseTime, avgTurnaroundTime)
 }
 

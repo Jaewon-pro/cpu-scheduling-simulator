@@ -3,7 +3,8 @@ This project is about a CPU scheduling simulator that allows users to simulate a
 #
 ![f1](https://user-images.githubusercontent.com/53341392/235887774-a7bcaadc-44ac-4747-8b11-d3a9e84e3c8b.gif)
 
-* The simulator includes a GUI that allows you to manipulate and run simulations, as well as display the results.
+The simulator includes a GUI that allows you to manipulate and run simulations, as well as display the results.
+
 ## Provided Scheduling Algorithms
 This program provides those scheduling algorithms.
 * FCFS - First Come, First Served.
@@ -14,6 +15,10 @@ This program provides those scheduling algorithms.
 * Round Robin
 
 ## Requirements
+### To Run
+* JVM 11 or later
+
+### To Build
 * JDK 11 or later
 * IntelliJ IDEA Community Edition or IntelliJ IDEA Ultimate 2020.3 or later 
 * The Compose Multiplatform IDE support plugin

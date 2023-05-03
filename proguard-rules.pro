@@ -1,6 +1,6 @@
 # proguard-rules.pro
--dontoptimize
--dontobfuscate
+#-dontoptimize
+#-dontobfuscate
 
 -dontwarn kotlinx.**
 
