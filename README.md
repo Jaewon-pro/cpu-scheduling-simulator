@@ -16,7 +16,7 @@ This program provides those scheduling algorithms.
 
 ## Requirements
 ### To Run
-* JVM 11 or later
+* JRE 11 or later
 
 ### To Build
 * JDK 11 or later
