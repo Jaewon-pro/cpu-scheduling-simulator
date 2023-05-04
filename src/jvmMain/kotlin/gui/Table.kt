@@ -84,6 +84,7 @@ fun showResult(processes: List<Process>, info: List<ChartInfo>) { // 성능 지�
         val throughput: Float = processes.size / totalTime.toFloat()
         val contextSwitched = info.size - 2
         averageResultTable(throughput, averages, contextSwitched)
+        resultTable(processes)
     }
 }
 
