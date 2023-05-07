@@ -28,5 +28,14 @@ This program provides those scheduling algorithms.
 To execute the CSV file of your choice, simply click on it and then click the "Run" button.
 This will enable you to view both the result tables and the Gantt chart.
 
+#### Example of CSV File
+
+| PID | Arrival Time | Burst Time |
+|-----|--------------|------------|
+| 1   | 1            | 24         |
+| 2   | 2            | 3          |
+| 3   | 3            | 3          |
+
+You can add "Priority" right next to "Burst Time" in the sample, as it may include Priority values.
 After running the program, you can simply drag them to see more.
 ![f2](https://user-images.githubusercontent.com/53341392/235887812-d181366e-abce-41ed-beaa-c986f45aa9bf.gif)
