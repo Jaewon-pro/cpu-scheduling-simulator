@@ -1,46 +1,77 @@
 package policy
 
-import utils.ChartInfo
+import model.ChartInfo
+import model.Process
+import model.ProgramData
+import utils.ChartUtils
 import utils.CircularQueue
-import utils.Process
-import utils.ProgramData
+import kotlin.math.min
 
-private fun calculateRoundRobin(processes : List<Process>, quantum: Int): ProgramData {
-    val info: MutableList<ChartInfo> = mutableListOf(ChartInfo(-1, processes[0].arrivalTime, 0)) // 처음에 0 표시
 
-    var currentRunTime = processes[0].arrivalTime
-    val readyPool = CircularQueue<Process>(processes.size + 1)
-    readyPool.add(processes[0])
-    processes[0].responseTime = 0
+fun executeRoundRobin(processes: List<Process>, quantum: Int): ProgramData {
+    return calculateRoundRobin(processes, quantum)
+}
+
+
+private fun calculateRoundRobin(processes: List<Process>, quantum: Int): ProgramData {
+
+    val chartInfoList: MutableList<ChartInfo> = ChartUtils.makeInitialList(processes.first().arrivalTime)
+
+    val readyPool = makeReadyPool(processes)
+    var currentRunTime = getStartTime(processes.first())
     var nextIdx = 1
 
     while (readyPool.isNotEmpty()) {
-        val newRunProcess: Process = readyPool.poll()
-        val performedTime = if (newRunProcess.remainedTime >= quantum) quantum else newRunProcess.remainedTime % quantum
-        if (newRunProcess.responseTime == -1) newRunProcess.responseTime = currentRunTime
+        val process: Process = readyPool.poll()
+
+        val performedTime = runProcessAsMuchItCan(process, quantum, currentRunTime)
 
         currentRunTime += performedTime
-        newRunProcess.remainedTime -= performedTime
+        chartInfoList += ChartInfo(process.pid, currentRunTime, performedTime)
 
-        info += ChartInfo(newRunProcess.pid, currentRunTime, performedTime) // ran at $currentRunTime
-
-        while (nextIdx < processes.size && currentRunTime >= processes[nextIdx].arrivalTime) {
+        while (isNextProcessArrived(nextIdx, currentRunTime, processes)) {
             readyPool.add(processes[nextIdx])
             ++nextIdx
         }
 
-        if (newRunProcess.remainedTime == 0) { // Job finished
-            newRunProcess.waitedTime = currentRunTime - newRunProcess.arrivalTime - newRunProcess.executionTime
-            //println("${performed.pid}: finished,, at $currentRunTime")
-        } else {
-            readyPool.add(newRunProcess)
+        if (process.isFinished()) {
+            saveWaitedTime(currentRunTime, process)
+            continue
         }
+        readyPool.add(process)
     }
-//    println("Total Executed time : $currentRunTime")
-//    println("Context Switched : ${info.size - 2}")
-    return ProgramData(processes, info)
+
+    return ProgramData(processes, chartInfoList)
 }
 
-fun executeRoundRobin(processes: List<Process>, quantum: Int): ProgramData {
-    return calculateRoundRobin(processes, quantum)
+
+private fun makeReadyPool(processes: List<Process>): CircularQueue<Process> {
+    val readyPool = CircularQueue<Process>(processes.size + 1)
+    readyPool.add(processes.first())
+    return readyPool
+}
+
+private fun getStartTime(first: Process): Int {
+    first.saveResponseTime(0)
+    return first.arrivalTime
+}
+
+private fun getPerformedTime(process: Process, quantum: Int): Int {
+    return min(process.remainedTime, quantum)
+}
+
+private fun runProcessAsMuchItCan(process: Process, quantum: Int, currentRunTime: Int): Int {
+    val performedTime = getPerformedTime(process, quantum)
+    process.remainedTime -= performedTime
+    process.saveResponseTime(currentRunTime)
+
+    return performedTime
+}
+
+private fun saveWaitedTime(currentRunTime: Int, process: Process) {
+    process.waitedTime = currentRunTime - process.arrivalTime - process.executionTime
+}
+
+private fun isNextProcessArrived(nextIdx: Int, currentRunTime: Int, processes: List<Process>): Boolean {
+    return nextIdx < processes.size && currentRunTime >= processes[nextIdx].arrivalTime
 }

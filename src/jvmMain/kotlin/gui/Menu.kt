@@ -15,10 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import utils.ChartInfo
-import utils.Process
-import utils.ProgramData
-import utils.parseTasksFromFile
+import model.ChartInfo
+import model.Process
+import model.ProgramData
+import utils.CsvReaderUtils
 import java.awt.FileDialog
 import java.io.File
 
@@ -83,7 +83,7 @@ private fun openFileButton(
         Button(onClick = {
             val openedFile: File? = openFileDialog(window, "Select a CSV file to run", listOf(".csv"))
             if (openedFile != null) {
-                val openedTasks = parseTasksFromFile(openedFile)
+                val openedTasks = CsvReaderUtils.parseTasksFromFile(openedFile)
                 onValueSaved(openedTasks)
                 onFileNameSaved(openedFile.name)
                 //println("File Selected: ${openedFile.absoluteFile}")

@@ -1,5 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import proguard.gradle.ProGuardTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("multiplatform")
@@ -11,7 +12,6 @@ version = "1.0-SNAPSHOT"
 
 
 repositories {
-//    google()
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 }
@@ -20,17 +20,23 @@ repositories {
 kotlin {
     jvm {
         jvmToolchain(17)
-        //withJava()
+        withJava()
     }
     sourceSets {
+
         val jvmMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
+
+//                implementation("com.nhaarman:mockito-kotlin:1.6.0")
+                implementation("org.junit.jupiter:junit-jupiter:5.9.3")
+                implementation("org.assertj:assertj-core:3.24.2")
             }
         }
         val jvmTest by getting
     }
 }
+
 
 compose.desktop {
     application {
@@ -55,6 +61,7 @@ compose.desktop {
         }
     }
 }
+
 buildscript {
     repositories {
         mavenCentral()
@@ -63,6 +70,13 @@ buildscript {
         classpath("com.guardsquare:proguard-gradle:7.2.0")
     }
 }
+
+
+tasks.named<Test>("jvmTest") {
+    useJUnitPlatform()
+}
+
+
 // Define task to obfuscate the JAR and output to <name>.min.jar
 tasks.register<ProGuardTask>("obfuscate") {
     val packageUberJarForCurrentOS by tasks.getting

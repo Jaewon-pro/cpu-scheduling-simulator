@@ -22,17 +22,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import utils.ChartInfo
+import model.ChartInfo
 
 
 @Composable
 fun oneChart(width: Dp, label: String, time: Int) { // 차트 한칸
     Column {
-        Card(Modifier
-            .border(width = 0.dp, color = Color.Blue)
-            .size(width, 40.dp)
+        Card(
+            Modifier
+                .border(width = 0.dp, color = Color.Blue)
+                .size(width, 40.dp)
         ) {
-            Box(contentAlignment = Alignment.Center
+            Box(
+                contentAlignment = Alignment.Center
             ) { Text(label) }
         }
         Text(modifier = Modifier.align(Alignment.End), text = time.toString())
@@ -41,9 +43,12 @@ fun oneChart(width: Dp, label: String, time: Int) { // 차트 한칸
 
 @Composable
 fun showChartAll(info: List<ChartInfo>) {
+    require(info.isNotEmpty())
+
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    LazyRow (
+
+    LazyRow(
         state = scrollState,
         modifier = Modifier
             .padding(12.dp)

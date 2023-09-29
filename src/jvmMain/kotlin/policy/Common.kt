@@ -1,8 +1,8 @@
 package policy
 
-import utils.ChartInfo
-import utils.Process
-import utils.ProgramData
+import model.ChartInfo
+import model.Process
+import model.ProgramData
 import java.util.*
 
 internal fun calculateTasks(

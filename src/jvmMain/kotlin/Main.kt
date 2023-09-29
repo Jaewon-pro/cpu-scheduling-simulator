@@ -1,9 +1,6 @@
-
 import androidx.compose.foundation.layout.Column
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
@@ -12,8 +9,9 @@ import gui.menu
 import gui.showChartAll
 import gui.showResult
 import gui.showTasksTable
-import utils.ChartInfo
-import utils.Process
+import model.ChartInfo
+import model.Process
+
 
 fun main() = application {
     Window(
@@ -23,21 +21,35 @@ fun main() = application {
     ) {
         window.minimumSize = window.size
         Column {
-            var processes: List<Process>? by remember { mutableStateOf(null) }
-            var info: List<ChartInfo>? by remember { mutableStateOf(null) }
-            var taskCompleted: Boolean by remember { mutableStateOf(false) }
-
-            menu(window, processes,
-                onFileLoaded = { processes = it; info = null; taskCompleted = false },
-                onPerformed = { info = it; taskCompleted = true }
-            )
-            if (!taskCompleted && processes != null) {
-                showTasksTable(processes!!)
-            }
-            if (taskCompleted && processes != null && info != null) {
-                showResult(processes!!, info!!)
-                showChartAll(info!!)
-            }
+            program(window)
         }
     }
+}
+
+
+@Composable
+private fun program(window: ComposeWindow) {
+    var processes: List<Process> by remember { mutableStateOf(listOf()) }
+    var info: List<ChartInfo> by remember { mutableStateOf(listOf()) }
+    var isTaskCompleted: Boolean by remember { mutableStateOf(false) }
+
+    menu(window, processes,
+        onFileLoaded = { processes = it; info = listOf(); isTaskCompleted = false },
+        onPerformed = { info = it; isTaskCompleted = true }
+    )
+    if (processes.isEmpty()) return
+
+    if (!isTaskCompleted) {
+        showTasksTable(processes)
+        return
+    }
+
+    resultView(processes, info)
+}
+
+@Composable
+private fun resultView(processes: List<Process>, info: List<ChartInfo>) {
+    if (processes.isEmpty() || info.isEmpty()) return
+    showResult(processes, info)
+    showChartAll(info)
 }

@@ -1,4 +1,5 @@
 package utils
+
 class CircularQueue<T>(private val capacity: Int) {
     private val queue = arrayOfNulls<Any?>(capacity)
     private var front = -1

@@ -17,9 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import utils.ChartInfo
-import utils.Process
-import utils.taskHeader
+import model.ChartInfo
+import model.Process
+import utils.CsvReaderUtils.Companion.taskHeader
 import kotlin.math.roundToInt
 
 @Composable
@@ -38,6 +38,8 @@ private fun RowScope.tableCell(
 
 @Composable
 fun showTasksTable(processes: List<Process>) {
+    require(processes.isNotEmpty())
+
     if (processes[0].isFinished()) return
     // Each cell of a column must have the same weight.
     val weight: Float = (taskHeader.size / 100.0f) * 100 / 100.0f.roundToInt() // 요소를 100으로 나눈 퍼센트값
@@ -78,6 +80,8 @@ fun showTasksTable(processes: List<Process>) {
 
 @Composable
 fun showResult(processes: List<Process>, info: List<ChartInfo>) { // 성능 지표 테이블
+    require(processes.isNotEmpty() && info.isNotEmpty())
+
     Column {
         val averages = getAvgList(processes)
         val totalTime = info.last().timestamp
