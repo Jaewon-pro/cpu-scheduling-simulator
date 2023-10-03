@@ -6,20 +6,20 @@ import org.junit.jupiter.api.Test
 import utils.CsvReaderUtils
 import java.io.File
 
-class PriorityTest {
+class SJFTest {
 
     private val testFilePath = "src/jvmTest/resources/sample.csv"
 
 
-    @DisplayName("Priority non-pre-emptive 테스트")
+    @DisplayName("SJF 테스트")
     @Test
-    fun testPriority_non_preemptive() {
+    fun test_SJF() {
         val file = File(testFilePath)
         val processes = CsvReaderUtils.parseTasksFromFile(file)
 
-        val result = executePriorityNonPreemptive(processes)
+        val result = executeSJF(processes)
 
-        val expectedTimestamp = arrayOf(0,1,2,3,4,6,9,11,12,15,16,19,21,25,32,35,39,42,47,48,52,57,60,62,67,75)
+        val expectedTimestamp = arrayOf(0,1,2,3,4,6,9,10,12,15,16,18,20,23,27,28,31,34,37,41,45,50,55,60,67,75)
 
         AssertionsForClassTypes.assertThat(result.processes.size).isEqualTo(25)
         AssertionsForClassTypes.assertThat(result.info.size).isEqualTo(26)
@@ -29,23 +29,22 @@ class PriorityTest {
         }
     }
 
-    @DisplayName("Priority pre-emptive 테스트")
+    @DisplayName("SRTF 테스트")
     @Test
-    fun testPriority_preemptive() {
+    fun test_SRTF() {
         val file = File(testFilePath)
         val processes = CsvReaderUtils.parseTasksFromFile(file)
 
-        val result = executePriority(processes)
+        val result = executeSRTF(processes)
 
-        val expectedTimestamp = arrayOf(0,1,2,3,5,6,7,9,10,13,14,16,19,21,28,31,35,38,40,45,46,50,55,58,60,62,67,75)
+        val expectedTimestamp = arrayOf(0,1,2,3,4,6,7,8,10,12,13,14,16,18,20,23,24,25,27,30,33,37,41,45,50,55,60,67,75)
 
         AssertionsForClassTypes.assertThat(result.processes.size).isEqualTo(25)
-        AssertionsForClassTypes.assertThat(result.info.size).isEqualTo(28)
+        AssertionsForClassTypes.assertThat(result.info.size).isEqualTo(29)
 
         result.info.mapIndexed { i, info ->
             AssertionsForClassTypes.assertThat(info.timestamp).isEqualTo(expectedTimestamp[i])
         }
     }
-
 
 }
